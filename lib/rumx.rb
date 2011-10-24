@@ -1,0 +1,5 @@
+require 'rumx/attribute'
+require 'rumx/bean'
+require 'rumx/folder_bean'
+require 'rumx/timer_bean'
+require 'rumx/server/app'

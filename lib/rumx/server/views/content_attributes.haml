@@ -1,0 +1,12 @@
+%table
+  %th
+    %td Name
+    %td Description
+    %td Type
+    %td Value
+  - attributes.each do |attribute, value|
+    %tr
+      %td= attribute.name
+      %td= attribute.description
+      %td= attribute.type.to_s
+      %td=
