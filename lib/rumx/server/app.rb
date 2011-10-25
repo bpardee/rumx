@@ -58,8 +58,12 @@ module Rumx::Server
     end
 
     get '/*/attributes.?:format?' do
-      names = params[:splat][0].split('/')
-      Bean.attributes(names, params).to_json
+      bean = Bean.find(params[:splat][0].split('/'))
+      return 404 unless bean
+      if params[:format] == 'json'
+      else
+        partial :content_attributes, :locals => {:bean => bean}
+      end
     end
 
     get '/*/operations' do

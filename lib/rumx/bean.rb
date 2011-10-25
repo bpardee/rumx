@@ -12,15 +12,15 @@ module Rumx
       end
 
       def bean_add_attribute(attribute)
-        bean_attributes[attribute.name] = attribute
+        bean_attributes << attribute
       end
 
       def bean_attributes
-        @attributes ||= {}
+        @attributes ||= ]
       end
 
       def bean_operations
-        @operations ||= {}
+        @operations ||= ]
       end
     end
 
@@ -41,33 +41,33 @@ module Rumx
       bean
     end
 
-    def self.get_attributes(name_array, options)
-      bean = find(name_array)
-      return nil unless bean
-      hash = {}
-      bean.class.bean_attributes.each do |name, attribute|
-        if attribute.allow_read
-          hash[name] = bean.send(name)
-        end
-      end
-      hash
-    end
-
-    def self.set_attributes(name_array, options)
-      bean = find(name_array)
-      return nil unless bean
-      hash = {}
-      bean.class.bean_attributes.each do |name, attribute|
-        if attribute.allow_write && value = options[name]
-          bean.send(name+'=', value)
-        end
-      end
-      hash
-    end
+    #def self.get_attributes(name_array, options)
+    #  bean = find(name_array)
+    #  return nil unless bean
+    #  hash = {}
+    #  bean.class.bean_attributes.each do |name, attribute|
+    #    if attribute.allow_read
+    #      hash[name] = bean.send(name)
+    #    end
+    #  end
+    #  hash
+    #end
+    #
+    #def self.set_attributes(name_array, options)
+    #  bean = find(name_array)
+    #  return nil unless bean
+    #  hash = {}
+    #  bean.class.bean_attributes.each do |name, attribute|
+    #    if attribute.allow_write && value = options[name]
+    #      bean.send(name+'=', value)
+    #    end
+    #  end
+    #  hash
+    #end
     
-    def self.get(name_array, options)
-      name = name_array.pop
-    end
+    #def self.get(name_array, options)
+    #  name = name_array.pop
+    #end
 
     def bean_children
       @children ||= {}
@@ -76,6 +76,14 @@ module Rumx
     def bean_register_child(name, child_bean)
       # TBD - Should I mutex protect this?
       bean_children[name.to_s] = child_bean
+    end
+
+    def bean_each_attribute_value
+      self.class.bean_attributes.each do |attribute|
+        if attribute.allow_read
+          yield attribute, send(attribute.name)
+        end
+      end
     end
   end
 end

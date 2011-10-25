@@ -4,9 +4,9 @@
     %td Description
     %td Type
     %td Value
-  - attributes.each do |attribute, value|
+  - bean.bean_each_attribute_value do |attribute, value|
     %tr
       %td= attribute.name
       %td= attribute.description
       %td= attribute.type.to_s
-      %td=
+      %td= value.to_s
