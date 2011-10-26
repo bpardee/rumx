@@ -1,12 +1,14 @@
-%table
-  %th
-    %td Name
-    %td Description
-    %td Type
-    %td Value
-  - bean.bean_each_attribute_value do |attribute, value|
+%table{:width => '100%'}
+  %thead
     %tr
-      %td= attribute.name
-      %td= attribute.description
-      %td= attribute.type.to_s
-      %td= value.to_s
+      %td Name
+      %td Description
+      %td Type
+      %td Value
+  %tbody
+    - bean.bean_each_attribute_value do |attribute, value|
+      %tr
+        %td= attribute.name
+        %td= attribute.description
+        %td= attribute.type.to_s
+        %td= value.to_s

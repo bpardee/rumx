@@ -1,6 +1,6 @@
 #tree
   %ul
-    = render_tree_bean_children(::Rumx::Bean.root)
+    = render_tree_bean_children('', ::Rumx::Bean.root)
 :javascript
   $(function () {
     jQuery("#tree")

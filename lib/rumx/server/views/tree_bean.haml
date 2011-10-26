@@ -1,6 +1,6 @@
 %li.tree-bean
   %a= name
   %ul
-    = render_tree_bean_attributes(bean)
-    = render_tree_bean_operations(bean)
-    = render_tree_bean_children(bean)
+    = render_tree_bean_attributes(path, bean)
+    = render_tree_bean_operations(path, bean)
+    = render_tree_bean_children(path, bean)

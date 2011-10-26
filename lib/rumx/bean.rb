@@ -16,11 +16,11 @@ module Rumx
       end
 
       def bean_attributes
-        @attributes ||= ]
+        @attributes ||= []
       end
 
       def bean_operations
-        @operations ||= ]
+        @operations ||= []
       end
     end
 

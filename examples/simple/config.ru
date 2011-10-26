@@ -6,6 +6,6 @@ require 'rumx'
 require 'my_bean'
 
 parent = Rumx::FolderBean.new
-Rumx::Bean.root.bean_register_child('MyFolder', parent)
-parent.bean_register_child('MyBean', MyBean.new)
-run Rumx::Server::App
+Rumx::Bean.root.bean_register_child('My Folder', parent)
+parent.bean_register_child('My Bean', MyBean.new)
+run Rumx::Server
