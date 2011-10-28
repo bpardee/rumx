@@ -4,13 +4,15 @@ module Rumx
   class TimerBean
     include Bean
 
-    bean_attr_reader :total_count, :integer, 'Number of times the timed instruction has run'
-    bean_attr_reader :total_time,  :float,   'Total time in msec for all the runs of the timed instruction'
-    bean_attr_reader :max_time,    :float,   'The maximum time for all the runs of the timed instruction'
-    bean_attr_reader :min_time,    :float,   'The minimum time for all the runs of the timed instruction'
-    bean_attr_reader :last_time,   :float,   'The time for the last run of the timed instruction'
-    bean_reader      :avg_time,    :float,   'The average time for all runs of the timed instruction'
-    bean_writer      :reset,       :boolean, 'Reset the times and count to zero'
+    bean_attr_reader :total_count, :integer, 'Number of times the measured block has successfully run'
+    bean_attr_reader :error_count, :integer, 'Number of times the measured block has raised an exception'
+    bean_attr_reader :total_time,  :float,   'Total time in msec for all the successful runs of the timed instruction'
+    bean_attr_reader :max_time,    :float,   'The maximum time for all the successful runs of the timed instruction'
+    bean_attr_reader :min_time,    :float,   'The minimum time for all the successful runs of the timed instruction'
+    bean_attr_reader :last_time,   :float,   'The time for the last successful run of the timed instruction'
+    bean_reader      :avg_time,    :float,   'The average time for all successful runs of the timed instruction'
+    bean_attr_reader :last_error,  :string,  'The exception message for the last timed instruction that resulted in an exception'
+    bean_writer      :reset,       :boolean, 'Reset the times and counts to zero (Note that last_time and last_error are not reset)'
 
     def initialize
       # Force initialization to avoid race condition (See bean.rb)

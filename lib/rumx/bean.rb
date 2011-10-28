@@ -161,9 +161,7 @@ module Rumx
     def do_bean_get_attributes
       hash = {}
       self.class.bean_attributes.each do |attribute|
-        if attribute.allow_read
-          hash[attribute] = attribute.get_value(self)
-        end
+        hash[attribute] = attribute.allow_read ? attribute.get_value(self) : nil
       end
       hash
     end

@@ -93,6 +93,10 @@ module Rumx
       def link_to_operation(path, operation)
         partial :link_to_operation, :locals => {:path =>path, :operation => operation}
       end
+
+      def attribute_value_tag(bean, attribute)
+        partial :attribute_value_tag, :locals => {:bean => bean, :attribute => attribute}
+      end
     end
 
     get '/' do
@@ -103,7 +107,21 @@ module Rumx
       path = params[:splat][0]
       bean = Bean.find(path.split('/'))
       return 404 unless bean
+      # For get we read, then write.  post is the other way around.
       attribute_value_hash = bean.bean_get_and_set_attributes(params)
+      if params[:format] == 'json'
+      else
+        partial :content_attributes, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute_value_hash => attribute_value_hash}
+      end
+    end
+
+    post '/*/attributes.?:format?' do
+      path = params[:splat][0]
+      bean = Bean.find(path.split('/'))
+      return 404 unless bean
+      # For post we write, then read.  get is the other way around.
+      bean.bean_set_attributes(params)
+      attribute_value_hash = bean.bean_get_attributes
       if params[:format] == 'json'
       else
         partial :content_attributes, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute_value_hash => attribute_value_hash}
