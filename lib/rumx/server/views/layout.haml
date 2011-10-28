@@ -1,0 +1,18 @@
+!!!XML
+!!!1.1
+%html{"xml:lang" => "en", :xmlns => "http://www.w3.org/1999/xhtml"}
+  %head
+    %script{:type => 'text/javascript', :src => url('/_lib/jquery.js')}
+    %script{:type => 'text/javascript', :src => url('/jquery.jstree.js')}
+    %script{:type => 'text/javascript', :src => url('/jquery.layout.min-1.2.0.js')}
+    %script{:type => 'text/javascript', :src => url('/jquery-ui-1.8.16.custom.min.js')}
+    :javascript
+      $(document).ready(function () {
+        $('body').layout({ applyDefaultStyles: true });
+      });
+    %title Rumx Console
+  %body
+    .ui-layout-west
+      = partial :tree
+    .ui-layout-center#content
+      = yield

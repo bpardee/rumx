@@ -1,0 +1,148 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xml:lang='en' xmlns='http://www.w3.org/1999/xhtml'>
+  <head>
+    <script src='_lib/jquery.js' type='text/javascript'></script>
+    <script src='jquery.jstree.js' type='text/javascript'></script>
+    <script src='jquery.layout.min-1.2.0.js' type='text/javascript'></script>
+    <script src='jquery-ui-1.8.16.custom.min.js' type='text/javascript'></script>
+    <script type='text/javascript'>
+      //<![CDATA[
+        $(document).ready(function () {
+          $('body').layout({ applyDefaultStyles: true });
+        });
+      //]]>
+    </script>
+    <title>Rumx Console</title>
+  </head>
+  <body>
+    <div class='ui-layout-west'>
+      <div id='tree'>
+        <ul>
+          <li class='tree-bean'>
+            <a>My Folder</a>
+            <ul>
+              
+              
+              <li class='tree-bean'>
+                <a>My Bean</a>
+                <ul>
+                  <li class='tree-bean-attributes'>
+                    <a href='#' onclick="$('#content').load('/My%20Folder/My%20Bean/attributes'); return false">Attributes</a>
+                    <ul>
+                      <li>
+                        <a href='#' onclick="$('#content').load('/My%20Folder/My%20Bean/greeting/attribute'); return false">greeting</a>
+                      </li>
+                      <li>
+                        <a href='#' onclick="$('#content').load('/My%20Folder/My%20Bean/goodbye/attribute'); return false">goodbye</a>
+                      </li>
+                      <li>
+                        <a href='#' onclick="$('#content').load('/My%20Folder/My%20Bean/my_accessor/attribute'); return false">my_accessor</a>
+                      </li>
+                      <li>
+                        <a href='#' onclick="$('#content').load('/My%20Folder/My%20Bean/my_writer/attribute'); return false">my_writer</a>
+                      </li>
+                      <li>
+                        <a href='#' onclick="$('#content').load('/My%20Folder/My%20Bean/readable_my_writer/attribute'); return false">readable_my_writer</a>
+                      </li>
+                    </ul>
+                  </li>
+                  <li class='tree-bean-operations'>
+                    <a href='#' onclick="$('#content').load('/My%20Folder/My%20Bean/operations'); return false">Operations</a>
+                    <ul>
+                      <li>
+                        <a href='#' onclick="$('#content').load('/My%20Folder/My%20Bean/my_operation/operation'); return false">my_operation</a>
+                      </li>
+                    </ul>
+                  </li>
+                  
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <script type='text/javascript'>
+        //<![CDATA[
+          $(function () {
+            jQuery("#tree")
+              .jstree({
+                core : { /* core options go here */ },
+                plugins : [ "themes", "html_data" ]
+            });
+          });
+        //]]>
+      </script>
+    </div>
+    <div class='ui-layout-center' id='content'>
+      <h3>Attributes</h3>
+      <form id='form' method='POST'>
+        <table width='100%'>
+          <thead>
+            <tr>
+              <td>Name</td>
+              <td>Description</td>
+              <td>Allow Read</td>
+              <td>Allow Write</td>
+              <td>Type</td>
+              <td>Value</td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a href='#' onclick="$('#content').load('/My%20Folder/My%20Bean/greeting/attribute'); return false">greeting</a></td>
+              <td>My greeting</td>
+              <td>true</td>
+              <td>false</td>
+              <td>string</td>
+              <td><span>Hello, Rumx</span></td>
+            </tr>
+            <tr>
+              <td><a href='#' onclick="$('#content').load('/My%20Folder/My%20Bean/goodbye/attribute'); return false">goodbye</a></td>
+              <td>My goodbye</td>
+              <td>true</td>
+              <td>false</td>
+              <td>string</td>
+              <td><span>Goodbye, Rumx (hic)</span></td>
+            </tr>
+            <tr>
+              <td><a href='#' onclick="$('#content').load('/My%20Folder/My%20Bean/my_accessor/attribute'); return false">my_accessor</a></td>
+              <td>My integer accessor</td>
+              <td>true</td>
+              <td>true</td>
+              <td>integer</td>
+              <td><input name='my_accessor' size='30' type='text' value='4' /></td>
+            </tr>
+            <tr>
+              <td><a href='#' onclick="$('#content').load('/My%20Folder/My%20Bean/my_writer/attribute'); return false">my_writer</a></td>
+              <td>My float writer</td>
+              <td>false</td>
+              <td>true</td>
+              <td>float</td>
+              <td><input name='my_writer' size='30' type='text' /></td>
+            </tr>
+            <tr>
+              <td><a href='#' onclick="$('#content').load('/My%20Folder/My%20Bean/readable_my_writer/attribute'); return false">readable_my_writer</a></td>
+              <td>My secret access to the write-only attribute my_writer</td>
+              <td>true</td>
+              <td>false</td>
+              <td>float</td>
+              <td><span>10.78</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <input type='submit' value='Update' />
+      </form>
+      <script type='text/javascript'>
+        //<![CDATA[
+          $("#form").submit(function() {
+            $.post("/My%20Folder/My%20Bean/attributes", $("#form").serialize(), function(result) {
+              $("#content").html(result);
+            });
+            return false;
+          });
+        //]]>
+      </script>
+    </div>
+  </body>
+</html>

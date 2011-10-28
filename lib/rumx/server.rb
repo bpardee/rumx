@@ -78,6 +78,12 @@ module Rumx
         end
       end
 
+      def haml_for_ajax(template, options={})
+        layout = request.xhr? ? false : :layout
+        options = options.merge(:layout => layout)
+        haml template, options
+      end
+
       def link_to_attributes(path)
         partial :link_to_attributes, :locals => {:path =>path}
       end
@@ -111,7 +117,7 @@ module Rumx
       attribute_value_hash = bean.bean_get_and_set_attributes(params)
       if params[:format] == 'json'
       else
-        partial :content_attributes, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute_value_hash => attribute_value_hash}
+        haml_for_ajax :content_attributes, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute_value_hash => attribute_value_hash}
       end
     end
 
@@ -124,7 +130,7 @@ module Rumx
       attribute_value_hash = bean.bean_get_attributes
       if params[:format] == 'json'
       else
-        partial :content_attributes, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute_value_hash => attribute_value_hash}
+        haml_for_ajax :content_attributes, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute_value_hash => attribute_value_hash}
       end
     end
 
@@ -134,7 +140,7 @@ module Rumx
       return 404 unless bean
       if params[:format] == 'json'
       else
-        partial :content_attribute, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute => attribute}
+        haml_for_ajax :content_attribute, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute => attribute}
       end
     end
 
@@ -145,7 +151,7 @@ module Rumx
       bean.bean_set_attributes(params)
       if params[:format] == 'json'
       else
-        partial :content_attribute, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute => attribute}
+        haml_for_ajax :content_attribute, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute => attribute}
       end
     end
 
@@ -153,7 +159,7 @@ module Rumx
       path = params[:splat][0]
       bean = Bean.find(path.split('/'))
       return 404 unless bean
-      partial :content_operations, :locals => {:path => '/' + URI.escape(path), :bean => bean}
+      haml_for_ajax :content_operations, :locals => {:path => '/' + URI.escape(path), :bean => bean}
     end
 
     get '/*/operation.?:format?' do
@@ -162,7 +168,7 @@ module Rumx
       return 404 unless bean
       if params[:format] == 'json'
       else
-        partial :content_operation, :locals => {:path => '/' + URI.escape(path), :bean => bean, :operation => operation}
+        haml_for_ajax :content_operation, :locals => {:path => '/' + URI.escape(path), :bean => bean, :operation => operation}
       end
     end
 
