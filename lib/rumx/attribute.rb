@@ -11,10 +11,12 @@ module Rumx
     end
 
     def get_value(bean)
+      return nil unless @allow_read
       bean.send(self.name)
     end
 
     def set_value(bean, value)
+      raise 'Illegal set_value' unless @allow_write
       bean.send(self.name.to_s+'=', type.convert(value))
     end
   end

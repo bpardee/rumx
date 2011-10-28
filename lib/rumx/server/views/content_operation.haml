@@ -12,13 +12,13 @@
     - operation.arguments.each_index do |i|
       - arg = operation.arguments[i]
       %tr
-        %td= "Argument #{i+1}"
+        %td= "Argument #{i+1}:"
         %td= arg.name
       %tr
-        %td Description
+        %td Description:
         %td= arg.description
       %tr
-        %td Type
+        %td Type:
         %td= arg.type
       %tr
         %td Value:

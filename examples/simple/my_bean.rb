@@ -29,12 +29,6 @@ class MyBean
     @my_writer
   end
 
-  # TBD - I think I like the above format better
-  #bean_operation 'My operation'
-  #bean_parameter :arg_int, :integer, 'An int argument'
-  #bean_parameter :arg_float, :float,  'A float argument'
-  #bean_parameter :arg_string, :string, 'A string argument'
-  #bean_returns   :string
   def my_operation(arg_int, arg_float, arg_string)
     "arg_int class=#{arg_int.class} value=#{arg_int} arg_float class=#{arg_float.class} value=#{arg_float} arg_string class=#{arg_string.class} value=#{arg_string}"
   end

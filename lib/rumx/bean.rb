@@ -153,6 +153,15 @@ module Rumx
       hash
     end
 
+    def bean_set_and_get_attributes(params)
+      hash = nil
+      bean_synchronize do
+        do_bean_set_attributes(params)
+        hash = do_bean_get_attributes
+      end
+      hash
+    end
+
     #######
     private
     #######
@@ -161,7 +170,7 @@ module Rumx
     def do_bean_get_attributes
       hash = {}
       self.class.bean_attributes.each do |attribute|
-        hash[attribute] = attribute.allow_read ? attribute.get_value(self) : nil
+        hash[attribute] = attribute.get_value(self)
       end
       hash
     end

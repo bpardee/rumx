@@ -25,7 +25,7 @@ module Rumx
         :integer => new(:integer, lambda {|s| s.to_i}),
         :float   => new(:float,   lambda {|s| s.to_f}),
         :string  => new(:string,  lambda {|s| s.to_s}),
-        :boolean => new(:boolean, lambda {|s| s.to_s != 'true' && s.to_s != ''})
+        :boolean => new(:boolean, lambda {|s| s.to_s == 'true' || s.to_s == ''})
     }
 
     # We've created all the instances we need

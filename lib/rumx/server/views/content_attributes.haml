@@ -17,7 +17,7 @@
           %td= attribute.allow_read
           %td= attribute.allow_write
           %td= attribute.type.to_s
-          %td= attribute_value_tag(bean, attribute)
+          %td= attribute_value_tag(bean, attribute, value)
 
   %input{ :type => 'submit', :value => 'Update' }
 

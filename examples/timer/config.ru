@@ -3,9 +3,10 @@ $LOAD_PATH.unshift File.dirname(__FILE__) + '/../../lib'
 
 require 'rubygems'
 require 'rumx'
-require 'my_bean'
+require 'my_class'
 
-my_folder = Rumx::FolderBean.new
-Rumx::Bean.root.bean_register_child('My Folder', my_folder)
-my_folder.bean_register_child('My Bean', MyBean.new)
+10.times do
+  MyClass.new
+end
+
 run Rumx::Server

@@ -100,8 +100,8 @@ module Rumx
         partial :link_to_operation, :locals => {:path =>path, :operation => operation}
       end
 
-      def attribute_value_tag(bean, attribute)
-        partial :attribute_value_tag, :locals => {:bean => bean, :attribute => attribute}
+      def attribute_value_tag(bean, attribute, value)
+        partial :attribute_value_tag, :locals => {:bean => bean, :attribute => attribute, :value => value}
       end
     end
 
@@ -116,6 +116,11 @@ module Rumx
       # For get we read, then write.  post is the other way around.
       attribute_value_hash = bean.bean_get_and_set_attributes(params)
       if params[:format] == 'json'
+        hash = {}
+        attribute_value_hash.each do |attribute, value|
+          hash[attribute.name] = value
+        end
+        hash.to_json
       else
         haml_for_ajax :content_attributes, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute_value_hash => attribute_value_hash}
       end
@@ -126,8 +131,7 @@ module Rumx
       bean = Bean.find(path.split('/'))
       return 404 unless bean
       # For post we write, then read.  get is the other way around.
-      bean.bean_set_attributes(params)
-      attribute_value_hash = bean.bean_get_attributes
+      attribute_value_hash = bean.bean_set_and_get_attributes(params)
       if params[:format] == 'json'
       else
         haml_for_ajax :content_attributes, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute_value_hash => attribute_value_hash}
@@ -140,7 +144,7 @@ module Rumx
       return 404 unless bean
       if params[:format] == 'json'
       else
-        haml_for_ajax :content_attribute, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute => attribute}
+        haml_for_ajax :content_attribute, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute => attribute, value => attribute.get_value(bean)}
       end
     end
 
@@ -151,7 +155,7 @@ module Rumx
       bean.bean_set_attributes(params)
       if params[:format] == 'json'
       else
-        haml_for_ajax :content_attribute, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute => attribute}
+        haml_for_ajax :content_attribute, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute => attribute, value => attribute.get_value(bean)}
       end
     end
 
