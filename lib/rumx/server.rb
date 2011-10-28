@@ -31,7 +31,7 @@ module Rumx
         val = ''
         children.each do |name, bean|
           #puts "in child name=#{name} bean=#{bean}"
-          path = URI.escape(parent_path + '/' + name)
+          path = parent_path + '/' + URI.escape(name)
           val << partial(:tree_bean, :locals => {:path => path, :name =>name, :bean => bean})
         end
         val
@@ -41,8 +41,24 @@ module Rumx
         path + '/attributes'
       end
 
+      def attribute_path(path, attribute=nil)
+        if attribute
+          "#{path}/#{attribute.name}/attribute"
+        else
+          "#{path}/attribute"
+        end
+      end
+
       def operations_path(path)
         path + '/operations'
+      end
+
+      def operation_path(path, operation=nil)
+        if operation
+          "#{path}/#{operation.name}/operation"
+        else
+          "#{path}/operation"
+        end
       end
 
       # http://sinatra-book.gittr.com/#implementation_of_rails_style_partials but extract_options! part of ActiveSupport
@@ -62,9 +78,20 @@ module Rumx
         end
       end
 
-      def find_bean(escaped_path)
-        arr = escaped_path.split('/').map {|name| URI.unescape(name)}
-        Bean.find(arr)
+      def link_to_attributes(path)
+        partial :link_to_attributes, :locals => {:path =>path}
+      end
+
+      def link_to_attribute(path, attribute)
+        partial :link_to_attribute, :locals => {:path =>path, :attribute => attribute}
+      end
+
+      def link_to_operations(path)
+        partial :link_to_operations, :locals => {:path =>path}
+      end
+
+      def link_to_operation(path, operation)
+        partial :link_to_operation, :locals => {:path =>path, :operation => operation}
       end
     end
 
@@ -73,32 +100,60 @@ module Rumx
     end
 
     get '/*/attributes.?:format?' do
-      bean = find_bean(params[:splat][0])
+      path = params[:splat][0]
+      bean = Bean.find(path.split('/'))
+      return 404 unless bean
+      attribute_value_hash = bean.bean_get_and_set_attributes(params)
+      if params[:format] == 'json'
+      else
+        partial :content_attributes, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute_value_hash => attribute_value_hash}
+      end
+    end
+
+    get '/*/attribute.?:format?' do
+      path = params[:splat][0]
+      bean, attribute = Bean.find_attribute(path.split('/'))
       return 404 unless bean
       if params[:format] == 'json'
       else
-        partial :content_attributes, :locals => {:bean => bean}
+        partial :content_attribute, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute => attribute}
+      end
+    end
+
+    post '/*/attribute.?:format?' do
+      path = params[:splat][0]
+      bean, attribute = Bean.find_attribute(path.split('/'))
+      return 404 unless bean
+      bean.bean_set_attributes(params)
+      if params[:format] == 'json'
+      else
+        partial :content_attribute, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute => attribute}
       end
     end
 
     get '/*/operations' do
-      names = params[:splat][0].split('/')
-      Bean.operations(names, params)
+      path = params[:splat][0]
+      bean = Bean.find(path.split('/'))
+      return 404 unless bean
+      partial :content_operations, :locals => {:path => '/' + URI.escape(path), :bean => bean}
     end
 
-    get '/*/children' do
-      names = params[:splat][0].split('/')
-      Bean.children(names, params)
+    get '/*/operation.?:format?' do
+      path = params[:splat][0]
+      bean, operation = Bean.find_operation(path.split('/'))
+      return 404 unless bean
+      if params[:format] == 'json'
+      else
+        partial :content_operation, :locals => {:path => '/' + URI.escape(path), :bean => bean, :operation => operation}
+      end
     end
 
-    get '/*' do
-      names = params[:splat][0].split('/')
-      Bean.get(names, params)
+    post '/*/operation.?:format?' do
+      path = params[:splat][0]
+      bean, operation = Bean.find_operation(path.split('/'))
+      return 404 unless bean
+      operation.run(bean, params).to_json
     end
 
-    post '/*' do
-      names = params[:splat][0].split('/')
-      Bean.post(names, params)
-    end
   end
 end

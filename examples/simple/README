@@ -1,2 +1,2 @@
 1) Execute 'rackup -p 4567'
-2) Browse to http://localhost:4567/MyFolder/MyBean/attributes
+2) Browse to http://localhost:4567, expand the tree and view/update the attributes and operations

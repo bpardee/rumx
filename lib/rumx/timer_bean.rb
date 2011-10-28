@@ -10,17 +10,19 @@ module Rumx
     bean_attr_reader :min_time,    :float,   'The minimum time for all the runs of the timed instruction'
     bean_attr_reader :last_time,   :float,   'The time for the last run of the timed instruction'
     bean_reader      :avg_time,    :float,   'The average time for all runs of the timed instruction'
+    bean_writer      :reset,       :boolean, 'Reset the times and count to zero'
 
     def initialize
-      @mutex = Mutex.new
-      @total_count = 0
-      @last_time   = 0.0
-      reset
+      # Force initialization to avoid race condition (See bean.rb)
+      super.bean_mutex
+      @last_time     = 0.0
+      self.reset = true
     end
 
-    def reset
-      @mutex.synchronize do
+    def reset=(val)
+      if val
         @total_count = 0
+        @error_count = 0
         @min_time    = nil
         @max_time    = 0.0
         @total_time  = 0.0
@@ -28,8 +30,16 @@ module Rumx
     end
 
     def measure
-      current_time = (Benchmark.realtime { yield }) * 1000.0
-      @mutex.synchronize do
+      begin
+        current_time = (Benchmark.realtime { yield }) * 1000.0
+      rescue Exception => e
+        bean_synchronize do
+          @error_count += 1
+          @last_error = e.message
+        end
+        raise
+      end
+      bean_synchronize do
         @last_time    = current_time
         @total_count += 1
         @total_time  += current_time
@@ -51,7 +61,7 @@ module Rumx
     end
 
     def to_s
-      "sample=#{@total_count} min=#{('%.1f' % min_time)}ms max=#{('%.1f' % max_time)}ms avg=#{('%.1f' % avg_time)}ms"
+      "total_count=#{@total_count} min=#{('%.1f' % min_time)}ms max=#{('%.1f' % max_time)}ms avg=#{('%.1f' % avg_time)}ms"
     end
   end
 end

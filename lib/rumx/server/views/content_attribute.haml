@@ -1,0 +1,35 @@
+%table{}
+  %tr
+    %td  Name:
+    %td= attribute.name
+  %tr
+    %td  Description:
+    %td= attribute.description
+  %tr
+    %td  Allow Read:
+    %td= attribute.allow_read
+  %tr
+    %td  Allow Write:
+    %td= attribute.allow_write
+  %tr
+    %td  Type:
+    %td= attribute.type.to_s
+  %tr
+    %td  Value:
+    %td
+      - if attribute.allow_write
+        %form#form{ :method =>'POST'}
+          - value, submit_label = attribute.allow_read ? [attribute.get_value(bean), 'Update'] : ['', 'Set']
+          %input{ :type => 'text', :name => attribute.name, :size => 30, :value => value }
+          %input{ :type => 'submit', :value => submit_label }
+      - else
+        = attribute.get_value(bean)
+
+:javascript
+  $("#form").submit(function() {
+    //posts the contents of the form to /action using ajax
+    $.post("#{attribute_path(path)}", $("#form").serialize(), function(result) {
+      $("#content").html(result);
+    });
+    return false;
+  });

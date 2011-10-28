@@ -1,5 +1,8 @@
+require 'rumx/argument'
 require 'rumx/attribute'
+require 'rumx/operation'
 require 'rumx/bean'
+require 'rumx/type'
 require 'rumx/folder_bean'
 require 'rumx/timer_bean'
 require 'rumx/server'

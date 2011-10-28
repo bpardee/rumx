@@ -1,0 +1,38 @@
+%form#form{ :method =>'POST' }
+  %table{}
+    %tr
+      %td  Name:
+      %td= operation.name
+    %tr
+      %td  Description:
+      %td= operation.description
+    %tr
+      %td  Returns:
+      %td= operation.type
+    - operation.arguments.each_index do |i|
+      - arg = operation.arguments[i]
+      %tr
+        %td= "Argument #{i+1}"
+        %td= arg.name
+      %tr
+        %td Description
+        %td= arg.description
+      %tr
+        %td Type
+        %td= arg.type
+      %tr
+        %td Value:
+        %td
+          %input{ :type => 'text', :name => arg.name, :size => 30 }
+  %input{ :type => 'submit', :value => 'Execute' }
+
+%p#results
+
+:javascript
+  $("#form").submit(function() {
+    //posts the contents of the form to /action using ajax
+    $.post("#{operation_path(path)}", $("#form").serialize(), function(result) {
+      $("#results").html("Result: "+result);
+    });
+    return false;
+  });

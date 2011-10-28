@@ -1,0 +1,36 @@
+%h3 Operations
+%table{:width => '100%'}
+  %thead
+    %tr
+      %td Name
+      %td Description
+      %td Returns
+      %td{:colspan => 4} Arguments
+    %tr
+      %td &nbsp;
+      %td &nbsp;
+      %td &nbsp;
+      %td Index
+      %td Name
+      %td Description
+      %td Type
+  %tbody
+    - bean.class.bean_operations.each do |operation|
+      %tr
+        %td= link_to_operation(path, operation)
+        %td= operation.description
+        %td= operation.type.to_s
+        %td &nbsp;
+        %td &nbsp;
+        %td &nbsp;
+        %td &nbsp;
+      - operation.arguments.each_index do |i|
+        - arg = operation.arguments[i]
+        %tr
+          %td &nbsp;
+          %td &nbsp;
+          %td &nbsp;
+          %td= i+1
+          %td= arg.name
+          %td= arg.description
+          %td= arg.type

@@ -1,6 +1,6 @@
 %li.tree-bean-attributes
-  %a{ :href =>'#', :onclick => "$('#content').load('#{attributes_path(path)}'); return false" } Attributes
+  = link_to_attributes(path)
   %ul
     - bean.class.bean_attributes.each do |attribute|
       %li
-        %a= attribute.name
+        = link_to_attribute(path, attribute)

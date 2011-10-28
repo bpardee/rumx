@@ -1,14 +1,19 @@
+%h3 Attributes
 %table{:width => '100%'}
   %thead
     %tr
       %td Name
       %td Description
+      %td Allow Read
+      %td Allow Write
       %td Type
       %td Value
   %tbody
-    - bean.bean_each_attribute_value do |attribute, value|
+    - attribute_value_hash.each do |attribute, value|
       %tr
-        %td= attribute.name
+        %td= link_to_attribute(path, attribute)
         %td= attribute.description
+        %td= attribute.allow_read
+        %td= attribute.allow_write
         %td= attribute.type.to_s
         %td= value.to_s
