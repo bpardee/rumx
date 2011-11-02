@@ -32,11 +32,16 @@ module Rumx
       end
 
       def bean_add_attribute(attribute)
-        bean_attributes << attribute
+        @attributes ||= []
+        @attributes << attribute
       end
 
       def bean_attributes
-        @attributes ||= []
+        attributes = []
+        # TBD - Is there a kind_of? for classes
+        attributes += superclass.bean_attributes if superclass.allocate.kind_of?(Rumx::Bean)
+        attributes += @attributes if @attributes
+        return attributes
       end
 
       #bean_operation     :my_operation,       :string,  'My operation', [
@@ -49,11 +54,16 @@ module Rumx
           raise 'Invalid bean_operation format' unless arg.kind_of?(Array) && arg.size == 3
           Argument.new(*arg)
         end
-        bean_operations << Operation.new(name, type, description, arguments)
+        @operations ||= []
+        @operations << Operation.new(name, type, description, arguments)
       end
 
       def bean_operations
-        @operations ||= []
+        operations = []
+        # TBD - Is there a kind_of? for classes
+        operations += superclass.bean_operations if superclass.allocate.kind_of?(Rumx::Bean)
+        operations += @operations if @operations
+        return operations
       end
     end
 
