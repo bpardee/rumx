@@ -111,9 +111,13 @@ module Rumx
       @children ||= {}
     end
 
-    def bean_register_child(name, child_bean)
+    def bean_add_child(name, child_bean)
       # TBD - Should I mutex protect this?  All beans would normally be registered during the code initialization process
       bean_children[name.to_s] = child_bean
+    end
+
+    def bean_remove_child(name)
+      bean_children.delete(name.to_s)
     end
 
     def bean_find_attribute(name)
@@ -162,6 +166,14 @@ module Rumx
       hash
     end
 
+    #########
+    protected
+    #########
+
+    # Allow extenders to save changes, etc. if attribute values change
+    def bean_attributes_changed
+    end
+
     #######
     private
     #######
@@ -178,15 +190,19 @@ module Rumx
     # Separate call in case we're already mutex locked
     def do_bean_set_attributes(params)
       return if params.empty?
+      changed = false
       self.class.bean_attributes.each do |attribute|
         if attribute.allow_write
           if params.has_key?(attribute.name)
             attribute.set_value(self, params[attribute.name])
+            changed = true
           elsif params.has_key?(attribute.name.to_s)
             attribute.set_value(self, params[attribute.name.to_s])
+            changed = true
           end
         end
       end
+      bean_attributes_changed if changed
     end
   end
 end

@@ -1,7 +1,7 @@
 class MyClass
 
   @@timer_bean = Rumx::TimerBean.new
-  Rumx::Bean.root.bean_register_child('timer', @@timer_bean)
+  Rumx::Bean.root.bean_add_child('timer', @@timer_bean)
 
   def initialize
     @start_time = Time.now
