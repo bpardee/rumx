@@ -38,9 +38,9 @@ module Rumx
 
       def bean_attributes
         attributes = []
-        # TBD - Is there a kind_of? for classes
-        attributes += superclass.bean_attributes if superclass.allocate.kind_of?(Rumx::Bean)
-        attributes += @attributes if @attributes
+        self.ancestors.reverse_each do |mod|
+          attributes += mod.bean_attributes_local if mod.include?(Rumx::Bean)
+        end
         return attributes
       end
 
@@ -60,10 +60,18 @@ module Rumx
 
       def bean_operations
         operations = []
-        # TBD - Is there a kind_of? for classes
-        operations += superclass.bean_operations if superclass.allocate.kind_of?(Rumx::Bean)
-        operations += @operations if @operations
+        self.ancestors.reverse_each do |mod|
+          operations += mod.bean_operations_local if mod.include?(Rumx::Bean)
+        end
         return operations
+      end
+
+      def bean_attributes_local
+        @attributes ||= []
+      end
+
+      def bean_operations_local
+        @operations ||= []
       end
     end
 
