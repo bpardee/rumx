@@ -1,3 +1,5 @@
+%h3= path[1..-1]
+%h4 Attribute
 %table{}
   %tr
     %td  Name:
@@ -19,7 +21,7 @@
     %td
       - if attribute.allow_write
         %form#form{ :method =>'POST'}
-          = attribute_value_tag(bean, attribute)
+          = attribute_value_tag(bean, attribute, value)
           %input{ :type => 'submit', :value => attribute.allow_read ? 'Update' : 'Set' }
       - else
         = attribute.get_value(bean)
