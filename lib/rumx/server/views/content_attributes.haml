@@ -11,15 +11,7 @@
         %td Type
         %td Value
     %tbody
-      - attribute_value_hash.each do |attribute, value|
-        %tr
-          %td= link_to_attribute(path, attribute)
-          %td= attribute.description
-          %td= attribute.allow_read
-          %td= attribute.allow_write
-          %td= attribute.type.to_s
-          %td= attribute_value_tag(bean, attribute, value)
-
+      = render_content_attributes_lines(path, bean, attribute_value_hash)
   %input{ :type => 'submit', :value => 'Update' }
 
 :javascript

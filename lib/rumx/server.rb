@@ -37,6 +37,28 @@ module Rumx
         val
       end
 
+      def render_content_attributes_lines(path, bean, attribute_value_hash, parent_relative_name='', parent_param_name='')
+        val = ''
+        attribute_value_hash.each do |attribute, value|
+          if attribute.kind_of?(Rumx::Attribute)
+            relative_name = parent_relative_name.empty? ? attribute.name.to_s : parent_relative_name + '/' + attribute.name.to_s
+            param_name = parent_param_name.empty? ? attribute.name.to_s : parent_param_name + '[' + attribute.name.to_s + ']'
+            link = link_to_attribute(path, attribute, relative_name)
+            tag =  attribute_value_tag(bean, attribute, param_name, value)
+            val << partial(:content_attributes_line, :locals => {:attribute => attribute, :link => link, :tag => tag})
+          elsif attribute.kind_of?(String)
+            # It's an embedded bean, attribute is actually the bean name and value is the hash of Attribute/values
+            embedded_name, embedded_attribute_value_hash = attribute, value
+            embedded_bean = bean.bean_find_embedded(embedded_name)
+            embedded_path = path + '/' + embedded_name.to_s
+            relative_name = parent_relative_name.empty? ? embedded_name : parent_relative_name + '/' + embedded_name
+            param_name = parent_param_name.empty? ? embedded_name : parent_param_name + '[' + embedded_name + ']'
+            val << render_content_attributes_lines(embedded_path, embedded_bean, embedded_attribute_value_hash, relative_name, param_name)
+          end
+        end
+        val
+      end
+
       def attributes_path(path)
         path + '/attributes'
       end
@@ -88,8 +110,9 @@ module Rumx
         partial :link_to_attributes, :locals => {:path =>path}
       end
 
-      def link_to_attribute(path, attribute)
-        partial :link_to_attribute, :locals => {:path =>path, :attribute => attribute}
+      def link_to_attribute(path, attribute, name = nil)
+        name = attribute.name unless name
+        partial :link_to_attribute, :locals => {:path =>path, :attribute => attribute, :name => name}
       end
 
       def link_to_operations(path)
@@ -100,8 +123,21 @@ module Rumx
         partial :link_to_operation, :locals => {:path =>path, :operation => operation}
       end
 
-      def attribute_value_tag(bean, attribute, value)
-        partial :attribute_value_tag, :locals => {:bean => bean, :attribute => attribute, :value => value}
+      def attribute_value_tag(bean, attribute, param_name, value)
+        partial :attribute_value_tag, :locals => {:bean => bean, :attribute => attribute, :param_name => param_name, :value => value}
+      end
+
+      def name_value_hash(attribute_value_hash)
+        hash = {}
+        attribute_value_hash.each do |attribute, value|
+          if attribute.kind_of?(Rumx::Attribute)
+            hash[attribute.name] = value
+          elsif attribute.kind_of?(String)
+            # It's an embedded bean, attribute is actually the bean name and value is the hash of Attribute/values
+            hash[attribute] = name_value_hash(value)
+          end
+        end
+        hash
       end
     end
 
@@ -116,11 +152,7 @@ module Rumx
       # For get we read, then write.  post is the other way around.
       attribute_value_hash = bean.bean_get_and_set_attributes(params)
       if params[:format] == 'json'
-        hash = {}
-        attribute_value_hash.each do |attribute, value|
-          hash[attribute.name] = value
-        end
-        hash.to_json
+        name_value_hash(attribute_value_hash).to_json
       else
         haml_for_ajax :content_attributes, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute_value_hash => attribute_value_hash}
       end
@@ -130,9 +162,11 @@ module Rumx
       path = params[:splat][0]
       bean = Bean.find(path.split('/'))
       return 404 unless bean
+      puts "params=#{params.inspect}"
       # For post we write, then read.  get is the other way around.
       attribute_value_hash = bean.bean_set_and_get_attributes(params)
       if params[:format] == 'json'
+        name_value_hash(attribute_value_hash).to_json
       else
         haml_for_ajax :content_attributes, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute_value_hash => attribute_value_hash}
       end

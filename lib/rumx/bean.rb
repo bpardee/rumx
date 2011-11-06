@@ -126,16 +126,31 @@ module Rumx
     end
 
     def bean_children
-      @children ||= {}
+      @bean_children ||= {}
     end
 
     def bean_add_child(name, child_bean)
       # TBD - Should I mutex protect this?  All beans would normally be registered during the code initialization process
+      raise "Error trying to add #{name} to embedded bean" if @bean_is_embedded
       bean_children[name.to_s] = child_bean
     end
 
     def bean_remove_child(name)
       bean_children.delete(name.to_s)
+    end
+
+    def bean_embedded_children
+      @bean_embedded_children ||= {}
+    end
+
+    def bean_add_embedded_child(name, embedded_child_bean)
+      raise "Error trying to add bean #{name} as embedded, it already has children" unless embedded_child_bean.bean_children.empty?
+      embedded_child_bean.instance_variable_set('@bean_is_embedded', true)
+      bean_embedded_children[name.to_s] = embedded_child_bean
+    end
+
+    def bean_remove_embedded_child(name)
+      bean_embedded_children.delete(name.to_s)
     end
 
     def bean_find_attribute(name)
@@ -150,6 +165,14 @@ module Rumx
       name = name.to_sym
       self.class.bean_operations.each do |operation|
         return operation if name == operation.name
+      end
+      return nil
+    end
+
+    def bean_find_embedded(name)
+      name = name.to_s
+      @bean_embedded_children.each do |bean_name, bean|
+        return bean if bean_name == name
       end
       return nil
     end
@@ -202,12 +225,15 @@ module Rumx
       self.class.bean_attributes.each do |attribute|
         hash[attribute] = attribute.get_value(self)
       end
+      bean_embedded_children.each do |name, bean|
+        hash[name] = bean.bean_get_attributes
+      end
       hash
     end
 
     # Separate call in case we're already mutex locked
     def do_bean_set_attributes(params)
-      return if params.empty?
+      return if !params || params.empty?
       changed = false
       self.class.bean_attributes.each do |attribute|
         if attribute.allow_write
@@ -219,6 +245,10 @@ module Rumx
             changed = true
           end
         end
+      end
+      bean_embedded_children.each do |name, bean|
+        embedded_params = params[name]
+        bean.bean_set_attributes(embedded_params)
       end
       bean_attributes_changed if changed
     end

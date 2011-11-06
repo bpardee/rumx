@@ -1,16 +1,14 @@
-require 'benchmark'
-
 module Rumx
   class TimerBean
     include Bean
 
-    bean_attr_reader :total_count, :integer, 'Number of times the measured block has successfully run'
+    bean_attr_reader :total_count, :integer, 'Number of times the measured block has run'
     bean_attr_reader :error_count, :integer, 'Number of times the measured block has raised an exception'
-    bean_attr_reader :total_time,  :float,   'Total time in msec for all the successful runs of the timed instruction'
-    bean_attr_reader :max_time,    :float,   'The maximum time for all the successful runs of the timed instruction'
-    bean_attr_reader :min_time,    :float,   'The minimum time for all the successful runs of the timed instruction'
-    bean_attr_reader :last_time,   :float,   'The time for the last successful run of the timed instruction'
-    bean_reader      :avg_time,    :float,   'The average time for all successful runs of the timed instruction'
+    bean_attr_reader :total_time,  :float,   'Total time in msec for all the runs of the timed instruction'
+    bean_attr_reader :max_time,    :float,   'The maximum time for all the runs of the timed instruction'
+    bean_attr_reader :min_time,    :float,   'The minimum time for all the runs of the timed instruction'
+    bean_attr_reader :last_time,   :float,   'The time for the last run of the timed instruction'
+    bean_reader      :avg_time,    :float,   'The average time for all runs of the timed instruction'
     bean_attr_reader :last_error,  :string,  'The exception message for the last timed instruction that resulted in an exception'
     bean_writer      :reset,       :boolean, 'Reset the times and counts to zero (Note that last_time and last_error are not reset)'
 
@@ -32,23 +30,26 @@ module Rumx
     end
 
     def measure
+      start_time = Time.now
       begin
-        current_time = (Benchmark.realtime { yield }) * 1000.0
-      rescue Exception => e
+        yield
+      ensure
+        current_time = Time.now.to_f - start_time.to_f
         bean_synchronize do
-          @error_count += 1
-          @last_error = e.message
+          @last_time    = current_time
+          @total_count += 1
+          @total_time  += current_time
+          @min_time     = current_time if !@min_time || current_time < @min_time
+          @max_time     = current_time if current_time > @max_time
         end
-        raise
       end
+      return current_time
+    rescue Exception => e
       bean_synchronize do
-        @last_time    = current_time
-        @total_count += 1
-        @total_time  += current_time
-        @min_time     = current_time if !@min_time || current_time < @min_time
-        @max_time     = current_time if current_time > @max_time
+        @error_count += 1
+        @last_error = e.message
       end
-      current_time
+      raise
     end
 
     def min_time
