@@ -31,55 +31,33 @@ module Rumx
         val = ''
         children.each do |name, bean|
           #puts "in child name=#{name} bean=#{bean}"
-          path = parent_path + '/' + URI.escape(name)
+          path = parent_path + '/' + name
           val << partial(:tree_bean, :locals => {:path => path, :name =>name, :bean => bean})
         end
         val
       end
 
-      def render_content_attributes_lines(path, bean, attribute_value_hash, parent_relative_name='', parent_param_name='')
-        val = ''
-        attribute_value_hash.each do |attribute, value|
-          if attribute.kind_of?(Rumx::Attribute)
-            relative_name = parent_relative_name.empty? ? attribute.name.to_s : parent_relative_name + '/' + attribute.name.to_s
-            param_name = parent_param_name.empty? ? attribute.name.to_s : parent_param_name + '[' + attribute.name.to_s + ']'
-            link = link_to_attribute(path, attribute, relative_name)
-            tag =  attribute_value_tag(bean, attribute, param_name, value)
-            val << partial(:content_attributes_line, :locals => {:attribute => attribute, :link => link, :tag => tag})
-          elsif attribute.kind_of?(String)
-            # It's an embedded bean, attribute is actually the bean name and value is the hash of Attribute/values
-            embedded_name, embedded_attribute_value_hash = attribute, value
-            embedded_bean = bean.bean_find_embedded(embedded_name)
-            embedded_path = path + '/' + embedded_name.to_s
-            relative_name = parent_relative_name.empty? ? embedded_name : parent_relative_name + '/' + embedded_name
-            param_name = parent_param_name.empty? ? embedded_name : parent_param_name + '[' + embedded_name + ']'
-            val << render_content_attributes_lines(embedded_path, embedded_bean, embedded_attribute_value_hash, relative_name, param_name)
-          end
-        end
-        val
-      end
-
       def attributes_path(path)
-        path + '/attributes'
+        URI.escape(path + '/attributes')
       end
 
       def attribute_path(path, attribute=nil)
         if attribute
-          "#{path}/#{attribute.name}/attribute"
+          URI.escape("#{path}/#{attribute.name}/attribute")
         else
-          "#{path}/attribute"
+          URI.escape("#{path}/attribute")
         end
       end
 
       def operations_path(path)
-        path + '/operations'
+        URI.escape(path + '/operations')
       end
 
       def operation_path(path, operation=nil)
         if operation
-          "#{path}/#{operation.name}/operation"
+          URI.escape("#{path}/#{operation.name}/operation")
         else
-          "#{path}/operation"
+          URI.escape("#{path}/operation")
         end
       end
 
@@ -107,24 +85,24 @@ module Rumx
       end
 
       def link_to_attributes(path)
-        partial :link_to_attributes, :locals => {:path =>path}
+        partial :link_to_content, :locals => {:href => attributes_path(path), :name => 'Attributes'}
       end
 
       def link_to_attribute(path, attribute, name = nil)
         name = attribute.name unless name
-        partial :link_to_attribute, :locals => {:path =>path, :attribute => attribute, :name => name}
+        partial :link_to_content, :locals => {:href => attribute_path(path, attribute), :name => name}
       end
 
       def link_to_operations(path)
-        partial :link_to_operations, :locals => {:path =>path}
+        partial :link_to_content, :locals => {:href => operations_path(path), :name => 'Operations'}
       end
 
       def link_to_operation(path, operation)
-        partial :link_to_operation, :locals => {:path =>path, :operation => operation}
+        partial :link_to_content, :locals => {:href => operation_path(path, operation), :name => operation.name}
       end
 
-      def attribute_value_tag(bean, attribute, param_name, value)
-        partial :attribute_value_tag, :locals => {:bean => bean, :attribute => attribute, :param_name => param_name, :value => value}
+      def attribute_value_tag(attribute, param_name, value)
+        partial :attribute_value_tag, :locals => {:attribute => attribute, :param_name => param_name, :value => value}
       end
 
       def name_value_hash(attribute_value_hash)
@@ -150,11 +128,10 @@ module Rumx
       bean = Bean.find(path.split('/'))
       return 404 unless bean
       # For get we read, then write.  post is the other way around.
-      attribute_value_hash = bean.bean_get_and_set_attributes(params)
       if params[:format] == 'json'
-        name_value_hash(attribute_value_hash).to_json
+        bean.bean_get_and_set_attributes(params).to_json
       else
-        haml_for_ajax :content_attributes, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute_value_hash => attribute_value_hash}
+        haml_for_ajax :content_attributes, :locals => {:get_set_method => :bean_get_and_set_attributes, :params => params, :path => path, :bean => bean}
       end
     end
 
@@ -164,11 +141,10 @@ module Rumx
       return 404 unless bean
       puts "params=#{params.inspect}"
       # For post we write, then read.  get is the other way around.
-      attribute_value_hash = bean.bean_set_and_get_attributes(params)
       if params[:format] == 'json'
-        name_value_hash(attribute_value_hash).to_json
+        bean.bean_set_and_get_attributes(params).to_json
       else
-        haml_for_ajax :content_attributes, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute_value_hash => attribute_value_hash}
+        haml_for_ajax :content_attributes, :locals => {:get_set_method => :bean_set_and_get_attributes, :params => params, :path => path, :bean => bean}
       end
     end
 
@@ -178,7 +154,7 @@ module Rumx
       return 404 unless bean
       if params[:format] == 'json'
       else
-        haml_for_ajax :content_attribute, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute => attribute, :value => attribute.get_value(bean)}
+        haml_for_ajax :content_attribute, :locals => {:path => '/' + path, :bean => bean, :attribute => attribute, :value => attribute.get_value(bean)}
       end
     end
 
@@ -189,7 +165,7 @@ module Rumx
       bean.bean_set_attributes(params)
       if params[:format] == 'json'
       else
-        haml_for_ajax :content_attribute, :locals => {:path => '/' + URI.escape(path), :bean => bean, :attribute => attribute, :value => attribute.get_value(bean)}
+        haml_for_ajax :content_attribute, :locals => {:path => '/' + path, :bean => bean, :attribute => attribute, :value => attribute.get_value(bean)}
       end
     end
 
@@ -197,7 +173,7 @@ module Rumx
       path = params[:splat][0]
       bean = Bean.find(path.split('/'))
       return 404 unless bean
-      haml_for_ajax :content_operations, :locals => {:path => '/' + URI.escape(path), :bean => bean}
+      haml_for_ajax :content_operations, :locals => {:path => '/' + path, :bean => bean}
     end
 
     get '/*/operation.?:format?' do
@@ -206,7 +182,7 @@ module Rumx
       return 404 unless bean
       if params[:format] == 'json'
       else
-        haml_for_ajax :content_operation, :locals => {:path => '/' + URI.escape(path), :bean => bean, :operation => operation}
+        haml_for_ajax :content_operation, :locals => {:path => '/' + path, :bean => bean, :operation => operation}
       end
     end
 

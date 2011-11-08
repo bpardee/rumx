@@ -21,7 +21,7 @@
     %td
       - if attribute.allow_write
         %form#form{ :method =>'POST'}
-          = attribute_value_tag(bean, attribute, attribute.name, value)
+          = attribute_value_tag(attribute, attribute.name, value)
           %input{ :type => 'submit', :value => attribute.allow_read ? 'Update' : 'Set' }
       - else
         = attribute.get_value(bean)

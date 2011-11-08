@@ -8,13 +8,26 @@ module Rumx
         bean_add_attribute(Attribute.new(name, type, description, true, false))
       end
 
+      def bean_list_reader(name, type, description)
+        bean_add_list_attribute(Attribute.new(name, type, description, true, false))
+      end
+
       def bean_attr_reader(name, type, description)
         attr_reader(name)
         bean_reader(name, type, description)
       end
 
+      def bean_list_attr_reader(name, type, description)
+        attr_reader(name)
+        bean_list_reader(name, type, description)
+      end
+
       def bean_writer(name, type, description)
         bean_add_attribute(Attribute.new(name, type, description, false, true))
+      end
+
+      def bean_list_writer(name, type, description)
+        bean_add_list_attribute(Attribute.new(name, type, description, false, true))
       end
 
       def bean_attr_writer(name, type, description)
@@ -22,8 +35,17 @@ module Rumx
         bean_writer(name, type, description)
       end
 
+      def bean_list_attr_writer(name, type, description)
+        attr_writer(name)
+        bean_list_writer(name, type, description)
+      end
+
       def bean_accessor(name, type, description)
         bean_add_attribute(Attribute.new(name, type, description, true, true))
+      end
+
+      def bean_list_accessor(name, type, description)
+        bean_add_list_attribute(Attribute.new(name, type, description, true, true))
       end
 
       def bean_attr_accessor(name, type, description)
@@ -31,9 +53,19 @@ module Rumx
         bean_accessor(name, type, description)
       end
 
+      def bean_list_attr_accessor(name, type, description)
+        attr_accessor(name)
+        bean_list_accessor(name, type, description)
+      end
+
       def bean_add_attribute(attribute)
         @attributes ||= []
         @attributes << attribute
+      end
+
+      def bean_add_list_attribute(attribute)
+        @list_attributes ||= []
+        @list_attributes << attribute
       end
 
       def bean_attributes
@@ -42,6 +74,22 @@ module Rumx
           attributes += mod.bean_attributes_local if mod.include?(Rumx::Bean)
         end
         return attributes
+      end
+
+      def bean_list_attributes
+        attributes = []
+        self.ancestors.reverse_each do |mod|
+          attributes += mod.bean_list_attributes_local if mod.include?(Rumx::Bean)
+        end
+        return attributes
+      end
+
+      def bean_attributes_local
+        @attributes ||= []
+      end
+
+      def bean_list_attributes_local
+        @list_attributes ||= []
       end
 
       #bean_operation     :my_operation,       :string,  'My operation', [
@@ -66,10 +114,6 @@ module Rumx
         return operations
       end
 
-      def bean_attributes_local
-        @attributes ||= []
-      end
-
       def bean_operations_local
         @operations ||= []
       end
@@ -89,7 +133,7 @@ module Rumx
         bean = bean.bean_children[name]
         return nil unless bean
       end
-      bean
+      return bean
     end
 
     # Return [bean, attribute] pair or nil if not found
@@ -177,9 +221,9 @@ module Rumx
       return nil
     end
 
-    def bean_get_attributes
+    def bean_get_attributes(rel_path=nil, param_name=nil, &block)
       bean_synchronize do
-        do_bean_get_attributes
+        do_bean_get_attributes(rel_path, param_name, &block)
       end
     end
 
@@ -189,22 +233,19 @@ module Rumx
       end
     end
 
-    def bean_get_and_set_attributes(params)
-      hash = nil
+    def bean_get_and_set_attributes(params, rel_path=nil, param_name=nil, &block)
       bean_synchronize do
-        hash = do_bean_get_attributes
+        val = do_bean_get_attributes(rel_path, param_name, &block)
         do_bean_set_attributes(params)
+        val
       end
-      hash
     end
 
-    def bean_set_and_get_attributes(params)
-      hash = nil
+    def bean_set_and_get_attributes(params, rel_path=nil, param_name=nil, &block)
       bean_synchronize do
         do_bean_set_attributes(params)
-        hash = do_bean_get_attributes
+        do_bean_get_attributes(rel_path, param_name, &block)
       end
-      hash
     end
 
     #########
@@ -220,15 +261,38 @@ module Rumx
     #######
 
     # Separate call in case we're already mutex locked
-    def do_bean_get_attributes
+    def do_bean_get_attributes(rel_path, param_name, &block)
+      return do_bean_get_attributes_hash unless block_given?
+      self.class.bean_attributes.each do |attribute|
+        yield attribute, attribute.get_value(self), join_rel_path(rel_path, attribute.name.to_s), join_param_name(param_name, attribute.name.to_s)
+      end
+      self.class.bean_list_attributes.each do |attribute|
+        obj = send(attribute.name)
+        if obj
+          new_rel_path   = join_rel_path(rel_path, attribute.name.to_s)
+          new_param_name = join_param_name(param_name, attribute.name.to_s)
+          obj.each_index do |i|
+            yield attribute, attribute.get_index_value(obj, i), "#{new_rel_path}/#{i}", "#{new_param_name}[#{i}]"
+          end
+        end
+      end
+      bean_embedded_children.each do |name, bean|
+        bean.bean_get_attributes(join_rel_path(rel_path, name), join_param_name(param_name, name), &block)
+      end
+    end
+
+    def do_bean_get_attributes_hash
       hash = {}
       self.class.bean_attributes.each do |attribute|
-        hash[attribute] = attribute.get_value(self)
+        hash[attribute.name] = attribute.get_value(self)
+      end
+      self.class.bean_list_attributes.each do |attribute|
+        hash[attribute.name] = attribute.get_value(self)
       end
       bean_embedded_children.each do |name, bean|
         hash[name] = bean.bean_get_attributes
       end
-      hash
+      return hash
     end
 
     # Separate call in case we're already mutex locked
@@ -246,11 +310,41 @@ module Rumx
           end
         end
       end
+      self.class.bean_list_attributes.each do |attribute|
+        if attribute.allow_write
+          obj = send(attribute.name)
+          sub_params = params[attribute.name] || params[attribute.name.to_s]
+          raise "Can't assign value for nil list attribute" if !obj && sub_params
+          if sub_params
+            raise "Invalid param for #{attribute.name}" unless sub_params.kind_of?(Hash)
+            sub_params.each do |index, value|
+              attribute.set_index_value(obj, index.to_i, value)
+              changed = true
+            end
+          end
+        end
+      end
       bean_embedded_children.each do |name, bean|
         embedded_params = params[name]
         bean.bean_set_attributes(embedded_params)
       end
       bean_attributes_changed if changed
+    end
+
+    def join_rel_path(old_rel_path, name)
+      if old_rel_path
+        old_rel_path + '/' + name
+      else
+        name
+      end
+    end
+
+    def join_param_name(old_param_name, name)
+      if old_param_name
+        old_param_name + '[' + name + ']'
+      else
+        name
+      end
     end
   end
 end
