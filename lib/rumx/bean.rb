@@ -130,7 +130,7 @@ module Rumx
     def self.find(name_array)
       bean = root
       name_array.each do |name|
-        bean = bean.bean_children[name]
+        bean = bean.bean_children[name] || bean.bean_embedded_children[name]
         return nil unless bean
       end
       return bean
@@ -286,8 +286,8 @@ module Rumx
       bean_embedded_child_lists.each do |name, list|
         list_rel_path   = join_rel_path(rel_path, name)
         list_param_name = join_param_name(param_name, name)
-        list.each_index do |i|
-          list[i].bean_get_attributes(join_rel_path(list_rel_path, i.to_s), join_param_name(list_param_name, i.to_s), &block)
+        list.each_with_index do |bean, i|
+          bean.bean_get_attributes(join_rel_path(list_rel_path, i.to_s), join_param_name(list_param_name, i.to_s), &block)
         end
       end
     end
@@ -345,8 +345,8 @@ module Rumx
       bean_embedded_child_lists.each do |name, list|
         list_params = params[name]
         if list_params
-          list.each_index do |i|
-            list[i].bean_set_attributes(list_params[i.to_s] || list_params[i])
+          list.each_with_index do |bean, i|
+            bean.bean_set_attributes(list_params[i] || list_params[i.to_s])
           end
         end
       end

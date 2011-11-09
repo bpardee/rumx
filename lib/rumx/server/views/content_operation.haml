@@ -11,8 +11,7 @@
     %tr
       %td  Returns:
       %td= operation.type
-    - operation.arguments.each_index do |i|
-      - arg = operation.arguments[i]
+    - operation.arguments.each_with_index do |arg, i|
       %tr
         %td= "Argument #{i+1}:"
         %td= arg.name
