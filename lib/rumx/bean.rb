@@ -124,7 +124,7 @@ module Rumx
     end
 
     def self.root
-      @root ||= FolderBean.new
+      @root ||= Beans::Folder.new
     end
 
     def self.find(name_array)
@@ -197,6 +197,18 @@ module Rumx
       bean_embedded_children.delete(name.to_s)
     end
 
+    def bean_embedded_child_lists
+      @bean_embedded_child_lists ||= {}
+    end
+
+    def bean_add_embedded_child_list(name, embedded_child_list)
+      bean_embedded_child_lists[name.to_s] = embedded_child_list
+    end
+
+    def bean_remove_embedded_child_list(name)
+      bean_embedded_child_lists.delete(name.to_s)
+    end
+
     def bean_find_attribute(name)
       name = name.to_sym
       self.class.bean_attributes.each do |attribute|
@@ -209,14 +221,6 @@ module Rumx
       name = name.to_sym
       self.class.bean_operations.each do |operation|
         return operation if name == operation.name
-      end
-      return nil
-    end
-
-    def bean_find_embedded(name)
-      name = name.to_s
-      @bean_embedded_children.each do |bean_name, bean|
-        return bean if bean_name == name
       end
       return nil
     end
@@ -262,7 +266,7 @@ module Rumx
 
     # Separate call in case we're already mutex locked
     def do_bean_get_attributes(rel_path, param_name, &block)
-      return do_bean_get_attributes_hash unless block_given?
+      return do_bean_get_attributes_json unless block_given?
       self.class.bean_attributes.each do |attribute|
         yield attribute, attribute.get_value(self), join_rel_path(rel_path, attribute.name.to_s), join_param_name(param_name, attribute.name.to_s)
       end
@@ -279,9 +283,16 @@ module Rumx
       bean_embedded_children.each do |name, bean|
         bean.bean_get_attributes(join_rel_path(rel_path, name), join_param_name(param_name, name), &block)
       end
+      bean_embedded_child_lists.each do |name, list|
+        list_rel_path   = join_rel_path(rel_path, name)
+        list_param_name = join_param_name(param_name, name)
+        list.each_index do |i|
+          list[i].bean_get_attributes(join_rel_path(list_rel_path, i.to_s), join_param_name(list_param_name, i.to_s), &block)
+        end
+      end
     end
 
-    def do_bean_get_attributes_hash
+    def do_bean_get_attributes_json
       hash = {}
       self.class.bean_attributes.each do |attribute|
         hash[attribute.name] = attribute.get_value(self)
@@ -291,6 +302,9 @@ module Rumx
       end
       bean_embedded_children.each do |name, bean|
         hash[name] = bean.bean_get_attributes
+      end
+      bean_embedded_child_lists.each do |name, list|
+        hash[name] = list.map {|bean| bean.bean_get_attributes}
       end
       return hash
     end
@@ -327,6 +341,14 @@ module Rumx
       bean_embedded_children.each do |name, bean|
         embedded_params = params[name]
         bean.bean_set_attributes(embedded_params)
+      end
+      bean_embedded_child_lists.each do |name, list|
+        list_params = params[name]
+        if list_params
+          list.each_index do |i|
+            list[i].bean_set_attributes(list_params[i.to_s] || list_params[i])
+          end
+        end
       end
       bean_attributes_changed if changed
     end

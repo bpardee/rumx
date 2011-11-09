@@ -5,7 +5,5 @@ require 'rubygems'
 require 'rumx'
 require 'my_bean'
 
-my_folder = Rumx::Beans::Folder.new
-Rumx::Bean.root.bean_add_child('My Folder', my_folder)
-my_folder.bean_add_child('My Bean', MyBean.new)
+Rumx::Bean.root.bean_add_child('MyBean', MyBean.new)
 run Rumx::Server

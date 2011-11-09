@@ -29,7 +29,7 @@ module Rumx
       end
     end
 
-    def measure
+    def measure(prefix='')
       start_time = Time.now
       begin
         yield
