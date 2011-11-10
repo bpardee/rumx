@@ -129,9 +129,18 @@ module Rumx
 
     def self.find(name_array)
       bean = root
-      name_array.each do |name|
-        bean = bean.bean_children[name] || bean.bean_embedded_children[name]
-        return nil unless bean
+      until name_array.empty?
+        name = name_array.shift
+        child_bean = bean.bean_children[name] || bean.bean_embedded_children[name]
+        unless child_bean
+          list = bean.bean_embedded_child_lists[name]
+          if list
+            index = name_array.shift
+            child_bean = list[index.to_i] if index && index.match(/\d+/)
+          end
+        end
+        return nil unless child_bean
+        bean = child_bean
       end
       return bean
     end
@@ -225,6 +234,19 @@ module Rumx
       return nil
     end
 
+    def bean_has_attributes?
+      return true unless self.class.bean_attributes.empty? && self.class.bean_list_attributes.empty?
+      bean_embedded_children.each_value do |bean|
+        return true if bean.bean_has_attributes?
+      end
+      bean_embedded_child_lists.each_value do |list|
+        list.each do |bean|
+          return true if bean.bean_has_attributes?
+        end
+      end
+      return false
+    end
+
     def bean_get_attributes(rel_path=nil, param_name=nil, &block)
       bean_synchronize do
         do_bean_get_attributes(rel_path, param_name, &block)
@@ -249,6 +271,34 @@ module Rumx
       bean_synchronize do
         do_bean_set_attributes(params)
         do_bean_get_attributes(rel_path, param_name, &block)
+      end
+    end
+
+    def bean_has_operations?
+      return true unless self.class.bean_operations.empty?
+      bean_embedded_children.each_value do |bean|
+        return true if bean.bean_has_operations?
+      end
+      bean_embedded_child_lists.each_value do |list|
+        list.each do |bean|
+          return true if bean.bean_has_operations?
+        end
+      end
+      return false
+    end
+
+    def bean_each_operation(rel_path=nil, &block)
+      self.class.bean_operations.each do |operation|
+        yield operation, join_rel_path(rel_path, operation.name.to_s)
+      end
+      bean_embedded_children.each do |name, bean|
+        bean.bean_each_operation(join_rel_path(rel_path, name), &block)
+      end
+      bean_embedded_child_lists.each do |name, list|
+        list_rel_path   = join_rel_path(rel_path, name)
+        list.each_with_index do |bean, i|
+          bean.bean_each_operation(join_rel_path(list_rel_path, i.to_s), &block)
+        end
       end
     end
 

@@ -1,6 +1,6 @@
 %li.tree-bean-operations
   = link_to_operations(path)
   %ul
-    - bean.class.bean_operations.each do |operation|
+    - bean.bean_each_operation do |operation, rel_path|
       %li
-        = link_to_operation(path, operation)
+        = link_to_operation(path, rel_path)

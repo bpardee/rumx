@@ -18,7 +18,7 @@ module Rumx
         else
           raise "No value for argument #{argument.name}"
         end
-        argument.type.convert(value)
+        argument.type.string_to_value(value)
       end
       bean.send(self.name, *args)
     end

@@ -8,13 +8,14 @@ module Rumx
       type
     end
 
-    def initialize(name, convert_proc)
+    def initialize(name, string_to_value_proc, value_to_string_proc=lambda{|v| v.to_s})
       @name = name
-      @convert_proc = convert_proc
+      @string_to_value_proc = string_to_value_proc
+      @value_to_string_proc = value_to_string_proc
     end
 
-    def convert(value)
-      @convert_proc.call(value)
+    def string_to_value(string)
+      @string_to_value_proc.call(string)
     end
 
     def to_s
@@ -26,7 +27,7 @@ module Rumx
         :float   => new(:float,   lambda {|s| s.to_f}),
         :string  => new(:string,  lambda {|s| s.to_s}),
         :boolean => new(:boolean, lambda {|s| s.to_s == 'true' || s.to_s == ''}),
-        :void    => new(:void,    lambda {|s| nil})
+        :void    => new(:void,    lambda {|s| nil}, lambda {|v| ''})
     }
 
     # We've created all the instances we need

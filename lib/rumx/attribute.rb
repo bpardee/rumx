@@ -17,7 +17,7 @@ module Rumx
 
     def set_value(bean, value)
       raise 'Illegal set_value' unless @allow_write
-      bean.send(self.name.to_s+'=', type.convert(value))
+      bean.send(self.name.to_s+'=', type.string_to_value(value))
     end
 
     def get_index_value(obj, index)
@@ -27,7 +27,7 @@ module Rumx
 
     def set_index_value(obj, index, value)
       raise 'Illegal set_index_value' unless @allow_write
-      obj[index] = type.convert(value)
+      obj[index] = type.string_to_value(value)
     end
   end
 end

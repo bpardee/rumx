@@ -7,9 +7,7 @@ class MyBean
   bean_attr_accessor :greeting, :string,  'My greeting'
 
   bean_operation     :my_operation,       :string,  'My operation', [
-      [ :arg_int,    :integer, 'An int argument'   ],
-      [ :arg_float,  :float,   'A float argument'  ],
-      [ :arg_string, :string,  'A string argument' ]
+      [ :arg_int,    :integer, 'An int argument'   ]
   ]
 
   def initialize

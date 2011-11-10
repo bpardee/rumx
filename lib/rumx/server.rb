@@ -13,23 +13,18 @@ module Rumx
 
     helpers do
       def render_tree_bean_attributes(path, bean)
-        #puts "attributes for bean=#{bean}"
-        attributes = bean.class.bean_attributes
-        return '' if attributes.empty?
+        return '' unless bean.bean_has_attributes?
         partial :tree_bean_attributes, :locals => {:path => path, :bean => bean}
       end
 
       def render_tree_bean_operations(path, bean)
-        operations = bean.class.bean_operations
-        return '' if operations.empty?
+        return '' unless bean.bean_has_operations?
         partial :tree_bean_operations, :locals => {:path => path, :bean => bean}
       end
 
       def render_tree_bean_children(parent_path, parent_bean)
-        children = parent_bean.bean_children
-        return '' if children.empty?
         val = ''
-        children.each do |name, bean|
+        parent_bean.bean_children.each do |name, bean|
           #puts "in child name=#{name} bean=#{bean}"
           path = parent_path + '/' + name
           val << partial(:tree_bean, :locals => {:path => path, :name =>name, :bean => bean})
@@ -41,24 +36,16 @@ module Rumx
         URI.escape(path + '/attributes')
       end
 
-      def attribute_path(path, attribute=nil)
-        if attribute
-          URI.escape("#{path}/#{attribute.name}/attribute")
-        else
-          URI.escape("#{path}/attribute")
-        end
+      def attribute_path(path)
+        URI.escape(path + '/attribute')
       end
 
       def operations_path(path)
         URI.escape(path + '/operations')
       end
 
-      def operation_path(path, operation=nil)
-        if operation
-          URI.escape("#{path}/#{operation.name}/operation")
-        else
-          URI.escape("#{path}/operation")
-        end
+      def operation_path(path)
+        URI.escape(path + '/operation')
       end
 
       # http://sinatra-book.gittr.com/#implementation_of_rails_style_partials but extract_options! part of ActiveSupport
@@ -88,17 +75,16 @@ module Rumx
         partial :link_to_content, :locals => {:href => attributes_path(path), :name => 'Attributes'}
       end
 
-      def link_to_attribute(path, attribute, name = nil)
-        name = attribute.name unless name
-        partial :link_to_content, :locals => {:href => attribute_path(path, attribute), :name => name}
+      def link_to_attribute(parent_path, rel_path)
+        partial :link_to_content, :locals => {:href => attribute_path(parent_path+'/'+rel_path), :name => rel_path}
       end
 
       def link_to_operations(path)
         partial :link_to_content, :locals => {:href => operations_path(path), :name => 'Operations'}
       end
 
-      def link_to_operation(path, operation)
-        partial :link_to_content, :locals => {:href => operation_path(path, operation), :name => operation.name}
+      def link_to_operation(parent_path, rel_path)
+        partial :link_to_content, :locals => {:href => operation_path(parent_path+'/'+rel_path), :name => rel_path}
       end
 
       def attribute_value_tag(attribute, param_name, value)
@@ -139,7 +125,7 @@ module Rumx
       path = params[:splat][0]
       bean = Bean.find(path.split('/'))
       return 404 unless bean
-      puts "params=#{params.inspect}"
+      #puts "params=#{params.inspect}"
       # For post we write, then read.  get is the other way around.
       if params[:format] == 'json'
         bean.bean_set_and_get_attributes(params).to_json

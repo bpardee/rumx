@@ -16,9 +16,9 @@
       %td Description
       %td Type
   %tbody
-    - bean.class.bean_operations.each do |operation|
+    - bean.bean_each_operation do |operation, rel_path|
       %tr
-        %td= link_to_operation(path, operation)
+        %td= link_to_operation(path, rel_path)
         %td= operation.description
         %td= operation.type.to_s
         %td &nbsp;

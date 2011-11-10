@@ -13,8 +13,8 @@
     %tbody
       - bean.send(get_set_method, params) do |attribute, value, rel_path, param_name|
         %tr
-          - puts "path=#{path} type=#{path.class.name} rel_path=#{rel_path} class=#{rel_path.class.name}"
-          %td= link_to_attribute(path+'/'+rel_path, attribute, rel_path)
+          - #puts "path=#{path} type=#{path.class.name} rel_path=#{rel_path} class=#{rel_path.class.name}"
+          %td= link_to_attribute(path, rel_path)
           %td= attribute.description
           %td= attribute.allow_read
           %td= attribute.allow_write
