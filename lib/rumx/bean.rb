@@ -145,14 +145,37 @@ module Rumx
       return bean
     end
 
-    # Return [bean, attribute] pair or nil if not found
+    # Return [bean, attribute, param_name, value] list or nil if not found
     def self.find_attribute(name_array)
-      attr_name = name_array.pop
-      bean = Bean.find(name_array)
-      return nil unless bean
-      attribute = bean.bean_find_attribute(attr_name)
-      return nil unless attribute
-      return [bean, attribute]
+      name = name_array.pop
+      # If it's a list attribute
+      if name.match(/^\d+$/)
+        index = name.to_i
+        name = name_array.pop
+        bean = Bean.find(name_array)
+        return nil unless bean
+        name = name.to_sym
+        bean.class.bean_list_attributes.each do |attribute|
+          if name == attribute.name
+            obj = bean.send(attribute.name)
+            if obj
+              param_name = "#{attribute.name}[#{index}]"
+              return [bean, attribute, param_name, attribute.get_index_value(obj, index)]
+            end
+          end
+        end
+      # else just a regular attribute
+      else
+        bean = Bean.find(name_array)
+        return nil unless bean
+        name = name.to_sym
+        bean.class.bean_attributes.each do |attribute|
+          if name == attribute.name
+            return [bean, attribute, attribute.name, attribute.get_value(bean)]
+          end
+        end
+      end
+      return nil
     end
 
     # Return [bean, operation] pair or nil if not found
@@ -216,14 +239,6 @@ module Rumx
 
     def bean_remove_embedded_child_list(name)
       bean_embedded_child_lists.delete(name.to_s)
-    end
-
-    def bean_find_attribute(name)
-      name = name.to_sym
-      self.class.bean_attributes.each do |attribute|
-        return attribute if name == attribute.name
-      end
-      return nil
     end
 
     def bean_find_operation(name)

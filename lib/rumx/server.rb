@@ -136,22 +136,24 @@ module Rumx
 
     get '/*/attribute.?:format?' do
       path = params[:splat][0]
-      bean, attribute = Bean.find_attribute(path.split('/'))
+      bean, attribute, param_name, value = Bean.find_attribute(path.split('/'))
       return 404 unless bean
       if params[:format] == 'json'
       else
-        haml_for_ajax :content_attribute, :locals => {:path => '/' + path, :bean => bean, :attribute => attribute, :value => attribute.get_value(bean)}
+        haml_for_ajax :content_attribute, :locals => {:path => '/' + path, :bean => bean, :attribute => attribute, :param_name => param_name, :value => value}
       end
     end
 
     post '/*/attribute.?:format?' do
       path = params[:splat][0]
-      bean, attribute = Bean.find_attribute(path.split('/'))
+      bean, attribute, param_name, value = Bean.find_attribute(path.split('/'))
       return 404 unless bean
       bean.bean_set_attributes(params)
+      # Do it again to get the updated value
+      bean, attribute, param_name, value = Bean.find_attribute(path.split('/'))
       if params[:format] == 'json'
       else
-        haml_for_ajax :content_attribute, :locals => {:path => '/' + path, :bean => bean, :attribute => attribute, :value => attribute.get_value(bean)}
+        haml_for_ajax :content_attribute, :locals => {:path => '/' + path, :bean => bean, :attribute => attribute, :param_name => param_name, :value => value}
       end
     end
 
