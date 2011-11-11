@@ -5,6 +5,6 @@ Gem::Specification.new do |s|
   s.authors     = ['Brad Pardee']
   s.email       = ['bradpardee@gmail.com']
   s.homepage    = 'http://github.com/ClarityServices/rumx'
-  s.files       = Dir["{examples,lib}/**/*"] + %w(LICENSE.txt Rakefile Gemfile History.md README.md)
+  s.files       = Dir["{examples,lib}/**/*"] + %w(LICENSE.txt Rakefile History.md README.md)
   s.version     = '0.0.1'
 end

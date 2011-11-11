@@ -83,6 +83,19 @@ Then you could use a tool such as munin, nagios, hyperic, etc to poll the url ht
 to monitor, graph, or create an alert based on the average, max, and min times that your operation takes.
 Refer to the timer example for more information.
 
+## TODO
+
+Api doc non-existent.
+
+Really needs some html/css love.  Right now the sinatra pages are so ugly they'll make your eyes hurt but I don't do this stuff
+so well.  Volunteers anyone?
+
+Need tests!  So far just doing Example Driven Development.
+
+Build in optional authentication or just let user extend Rumx::Server?
+
+Railtie it.
+
 ## Author
 
 Brad Pardee
