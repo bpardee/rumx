@@ -46,6 +46,8 @@ bean attributes and operations.  For example, you might create a class as follow
       end
     end
 
+Note that all Rumx::Bean public methods are prefixed with "bean_" to help avoid name collisions.
+
 You create a tree of beans under Rumx::Bean.root.  For instance, you might create a tree for the bean above with the following commands:
 
     my_folder = Rumx::Beans::Folder.new
