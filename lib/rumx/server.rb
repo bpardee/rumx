@@ -26,7 +26,7 @@ module Rumx
         val = ''
         parent_bean.bean_children.each do |name, bean|
           #puts "in child name=#{name} bean=#{bean}"
-          path = parent_path + '/' + name
+          path = "#{parent_path}/#{name}"
           val << partial(:tree_bean, :locals => {:path => path, :name =>name, :bean => bean})
         end
         val

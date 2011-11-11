@@ -26,7 +26,7 @@ module Rumx
         :integer => new(:integer, lambda {|s| s.to_i}),
         :float   => new(:float,   lambda {|s| s.to_f}),
         :string  => new(:string,  lambda {|s| s.to_s}),
-        :boolean => new(:boolean, lambda {|s| s.to_s == 'true' || s.to_s == ''}),
+        :boolean => new(:boolean, lambda {|s| s.to_s == 'true'}),
         :void    => new(:void,    lambda {|s| nil}, lambda {|v| ''})
     }
 

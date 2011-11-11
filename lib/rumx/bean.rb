@@ -4,60 +4,102 @@ module Rumx
   module Bean
     module ClassMethods
 
-      def bean_reader(name, type, description)
-        bean_add_attribute(Attribute.new(name, type, description, true, false))
+      def bean_reader(name, type, description, options={})
+        bean_add_attribute(Attribute.new(name, type, description, true, false, options))
       end
 
-      def bean_list_reader(name, type, description)
-        bean_add_list_attribute(Attribute.new(name, type, description, true, false))
+      # options
+      #   max_size - the max size the list can be indexed for setting.  Can be an integer or
+      #     a symbol that represents an attribute or method of the bean.  Defaults to the
+      #     current size of the list.
+      def bean_list_reader(name, type, description, options={})
+        bean_add_list_attribute(Attribute.new(name, type, description, true, false, options))
       end
 
-      def bean_attr_reader(name, type, description)
+      def bean_attr_reader(name, type, description, options={})
         attr_reader(name)
-        bean_reader(name, type, description)
+        bean_reader(name, type, description, options)
       end
 
-      def bean_list_attr_reader(name, type, description)
+      def bean_list_attr_reader(name, type, description, options={})
         attr_reader(name)
-        bean_list_reader(name, type, description)
+        bean_list_reader(name, type, description, options)
       end
 
-      def bean_writer(name, type, description)
-        bean_add_attribute(Attribute.new(name, type, description, false, true))
+      def bean_writer(name, type, description, options={})
+        bean_add_attribute(Attribute.new(name, type, description, false, true, options))
       end
 
-      def bean_list_writer(name, type, description)
-        bean_add_list_attribute(Attribute.new(name, type, description, false, true))
+      def bean_list_writer(name, type, description, options={})
+        bean_add_list_attribute(Attribute.new(name, type, description, false, true, options))
       end
 
-      def bean_attr_writer(name, type, description)
+      def bean_attr_writer(name, type, description, options={})
         attr_writer(name)
-        bean_writer(name, type, description)
+        bean_writer(name, type, description, options)
       end
 
-      def bean_list_attr_writer(name, type, description)
+      def bean_list_attr_writer(name, type, description, options={})
         attr_writer(name)
-        bean_list_writer(name, type, description)
+        bean_list_writer(name, type, description, options)
       end
 
-      def bean_accessor(name, type, description)
-        bean_add_attribute(Attribute.new(name, type, description, true, true))
+      def bean_accessor(name, type, description, options={})
+        bean_add_attribute(Attribute.new(name, type, description, true, true, options))
       end
 
-      def bean_list_accessor(name, type, description)
-        bean_add_list_attribute(Attribute.new(name, type, description, true, true))
+      def bean_list_accessor(name, type, description, options={})
+        bean_add_list_attribute(Attribute.new(name, type, description, true, true, options))
       end
 
-      def bean_attr_accessor(name, type, description)
+      def bean_attr_accessor(name, type, description, options={})
         attr_accessor(name)
-        bean_accessor(name, type, description)
+        bean_accessor(name, type, description, options)
       end
 
-      def bean_list_attr_accessor(name, type, description)
+      def bean_list_attr_accessor(name, type, description, options={})
         attr_accessor(name)
-        bean_list_accessor(name, type, description)
+        bean_list_accessor(name, type, description, options)
       end
 
+      def bean_embed(name, description)
+        # We're going to ignore description (for now)
+        bean_embeds << name.to_sym
+      end
+      
+      def bean_attr_embed(name, description)
+        attr_reader(name)
+        bean_embed(name, description)
+      end
+
+      def bean_embed_list(name, description)
+        # We're going to ignore description (for now)
+        bean_embed_lists << name.to_sym
+      end
+
+      def bean_attr_embed_list(name, description)
+        attr_reader(name)
+        bean_embed_list(name, description)
+      end
+
+      #bean_operation     :my_operation,       :string,  'My operation', [
+      #    [ :arg_int,    :int,    'An int argument'   ],
+      #    [ :arg_float,  :float,  'A float argument'  ],
+      #    [ :arg_string, :string, 'A string argument' ]
+      #]
+      def bean_operation(name, type, description, args)
+        arguments = args.map do |arg|
+          raise 'Invalid bean_operation format' unless arg.kind_of?(Array) && arg.size == 3
+          Argument.new(*arg)
+        end
+        @operations ||= []
+        @operations << Operation.new(name, type, description, arguments)
+      end
+
+      #######
+      # private - TODO: Local helper methods, how should I designate them as private or just nodoc them?
+      #######
+      
       def bean_add_attribute(attribute)
         @attributes ||= []
         @attributes << attribute
@@ -92,20 +134,6 @@ module Rumx
         @list_attributes ||= []
       end
 
-      #bean_operation     :my_operation,       :string,  'My operation', [
-      #    [ :arg_int,    :int,    'An int argument'   ],
-      #    [ :arg_float,  :float,  'A float argument'  ],
-      #    [ :arg_string, :string, 'A string argument' ]
-      #]
-      def bean_operation(name, type, description, args)
-        arguments = args.map do |arg|
-          raise 'Invalid bean_operation format' unless arg.kind_of?(Array) && arg.size == 3
-          Argument.new(*arg)
-        end
-        @operations ||= []
-        @operations << Operation.new(name, type, description, arguments)
-      end
-
       def bean_operations
         operations = []
         self.ancestors.reverse_each do |mod|
@@ -116,6 +144,14 @@ module Rumx
 
       def bean_operations_local
         @operations ||= []
+      end
+
+      def bean_embeds
+        @embeds ||= []
+      end
+
+      def bean_embed_lists
+        @embed_lists ||= []
       end
     end
 
@@ -130,10 +166,13 @@ module Rumx
     def self.find(name_array)
       bean = root
       until name_array.empty?
-        name = name_array.shift
-        child_bean = bean.bean_children[name] || bean.bean_embedded_children[name]
-        unless child_bean
-          list = bean.bean_embedded_child_lists[name]
+        name = name_array.shift.to_sym
+        child_bean = bean.bean_children[name]
+        if !child_bean && bean.class.bean_embeds.include?(name)
+          child_bean = bean.send(name)
+        end
+        if !child_bean && bean.class.bean_embed_lists.include?(name)
+          list = bean.send(name)
           if list
             index = name_array.shift
             child_bean = list[index.to_i] if index && index.match(/\d+/)
@@ -180,12 +219,14 @@ module Rumx
 
     # Return [bean, operation] pair or nil if not found
     def self.find_operation(name_array)
-      oper_name = name_array.pop
+      name = name_array.pop
       bean = Bean.find(name_array)
       return nil unless bean
-      operation = bean.bean_find_operation(oper_name)
-      return nil unless operation
-      return [bean, operation]
+      name = name.to_sym
+      bean.class.bean_operations.each do |operation|
+        return [bean, operation] if name == operation.name
+      end
+      return nil
     end
 
     # Mutex for synchronization of attributes/operations
@@ -208,55 +249,25 @@ module Rumx
     def bean_add_child(name, child_bean)
       # TBD - Should I mutex protect this?  All beans would normally be registered during the code initialization process
       raise "Error trying to add #{name} to embedded bean" if @bean_is_embedded
-      bean_children[name.to_s] = child_bean
+      bean_children[name.to_sym] = child_bean
     end
 
     def bean_remove_child(name)
-      bean_children.delete(name.to_s)
-    end
-
-    def bean_embedded_children
-      @bean_embedded_children ||= {}
-    end
-
-    def bean_add_embedded_child(name, embedded_child_bean)
-      raise "Error trying to add bean #{name} as embedded, it already has children" unless embedded_child_bean.bean_children.empty?
-      embedded_child_bean.instance_variable_set('@bean_is_embedded', true)
-      bean_embedded_children[name.to_s] = embedded_child_bean
-    end
-
-    def bean_remove_embedded_child(name)
-      bean_embedded_children.delete(name.to_s)
-    end
-
-    def bean_embedded_child_lists
-      @bean_embedded_child_lists ||= {}
-    end
-
-    def bean_add_embedded_child_list(name, embedded_child_list)
-      bean_embedded_child_lists[name.to_s] = embedded_child_list
-    end
-
-    def bean_remove_embedded_child_list(name)
-      bean_embedded_child_lists.delete(name.to_s)
-    end
-
-    def bean_find_operation(name)
-      name = name.to_sym
-      self.class.bean_operations.each do |operation|
-        return operation if name == operation.name
-      end
-      return nil
+      bean_children.delete(name.to_sym)
     end
 
     def bean_has_attributes?
       return true unless self.class.bean_attributes.empty? && self.class.bean_list_attributes.empty?
-      bean_embedded_children.each_value do |bean|
-        return true if bean.bean_has_attributes?
+      self.class.bean_embeds.each do |name|
+        bean = send(name)
+        return true if bean && bean.bean_has_attributes?
       end
-      bean_embedded_child_lists.each_value do |list|
-        list.each do |bean|
-          return true if bean.bean_has_attributes?
+      self.class.bean_embed_lists.each do |list_name|
+        list = send(list_name)
+        if list 
+          list.each do |bean|
+            return true if bean.bean_has_attributes?
+          end
         end
       end
       return false
@@ -291,12 +302,16 @@ module Rumx
 
     def bean_has_operations?
       return true unless self.class.bean_operations.empty?
-      bean_embedded_children.each_value do |bean|
-        return true if bean.bean_has_operations?
+      self.class.bean_embeds.each do |name|
+        bean = send(name)
+        return true if bean && bean.bean_has_operations?
       end
-      bean_embedded_child_lists.each_value do |list|
-        list.each do |bean|
-          return true if bean.bean_has_operations?
+      self.class.bean_embed_lists.each do |list_name|
+        list = send(list_name)
+        if list 
+          list.each do |bean|
+            return true if bean.bean_has_operations?
+          end
         end
       end
       return false
@@ -304,15 +319,19 @@ module Rumx
 
     def bean_each_operation(rel_path=nil, &block)
       self.class.bean_operations.each do |operation|
-        yield operation, join_rel_path(rel_path, operation.name.to_s)
+        yield operation, bean_join_rel_path(rel_path, operation.name.to_s)
       end
-      bean_embedded_children.each do |name, bean|
-        bean.bean_each_operation(join_rel_path(rel_path, name), &block)
+      self.class.bean_embeds.each do |name|
+        bean = send(name)
+        bean.bean_each_operation(bean_join_rel_path(rel_path, name), &block) if bean
       end
-      bean_embedded_child_lists.each do |name, list|
-        list_rel_path   = join_rel_path(rel_path, name)
-        list.each_with_index do |bean, i|
-          bean.bean_each_operation(join_rel_path(list_rel_path, i.to_s), &block)
+      self.class.bean_embed_lists.each do |name|
+        list = send(name)
+        if list 
+          list_rel_path = bean_join_rel_path(rel_path, name)
+          list.each_with_index do |bean, i|
+            bean.bean_each_operation(bean_join_rel_path(list_rel_path, i.to_s), &block)
+          end
         end
       end
     end
@@ -333,26 +352,30 @@ module Rumx
     def do_bean_get_attributes(rel_path, param_name, &block)
       return do_bean_get_attributes_json unless block_given?
       self.class.bean_attributes.each do |attribute|
-        yield attribute, attribute.get_value(self), join_rel_path(rel_path, attribute.name.to_s), join_param_name(param_name, attribute.name.to_s)
+        yield attribute, attribute.get_value(self), bean_join_rel_path(rel_path, attribute.name.to_s), bean_join_param_name(param_name, attribute.name.to_s)
       end
       self.class.bean_list_attributes.each do |attribute|
         obj = send(attribute.name)
         if obj
-          new_rel_path   = join_rel_path(rel_path, attribute.name.to_s)
-          new_param_name = join_param_name(param_name, attribute.name.to_s)
+          new_rel_path   = bean_join_rel_path(rel_path, attribute.name.to_s)
+          new_param_name = bean_join_param_name(param_name, attribute.name.to_s)
           obj.each_index do |i|
             yield attribute, attribute.get_index_value(obj, i), "#{new_rel_path}/#{i}", "#{new_param_name}[#{i}]"
           end
         end
       end
-      bean_embedded_children.each do |name, bean|
-        bean.bean_get_attributes(join_rel_path(rel_path, name), join_param_name(param_name, name), &block)
+      self.class.bean_embeds.each do |name|
+        bean = send(name)
+        bean.bean_get_attributes(bean_join_rel_path(rel_path, name), bean_join_param_name(param_name, name), &block) if bean
       end
-      bean_embedded_child_lists.each do |name, list|
-        list_rel_path   = join_rel_path(rel_path, name)
-        list_param_name = join_param_name(param_name, name)
-        list.each_with_index do |bean, i|
-          bean.bean_get_attributes(join_rel_path(list_rel_path, i.to_s), join_param_name(list_param_name, i.to_s), &block)
+      self.class.bean_embed_lists.each do |name|
+        list = send(name)
+        if list 
+          list_rel_path   = bean_join_rel_path(rel_path, name)
+          list_param_name = bean_join_param_name(param_name, name)
+          list.each_with_index do |bean, i|
+            bean.bean_get_attributes(bean_join_rel_path(list_rel_path, i.to_s), bean_join_param_name(list_param_name, i.to_s), &block)
+          end
         end
       end
     end
@@ -365,11 +388,15 @@ module Rumx
       self.class.bean_list_attributes.each do |attribute|
         hash[attribute.name] = attribute.get_value(self)
       end
-      bean_embedded_children.each do |name, bean|
-        hash[name] = bean.bean_get_attributes
+      self.class.bean_embeds.each do |name|
+        bean = send(name)
+        hash[name] = bean.bean_get_attributes if bean
       end
-      bean_embedded_child_lists.each do |name, list|
-        hash[name] = list.map {|bean| bean.bean_get_attributes}
+      self.class.bean_embed_lists.each do |name|
+        list = send(name)
+        if list 
+          hash[name] = list.map {|bean| bean.bean_get_attributes}
+        end
       end
       return hash
     end
@@ -395,42 +422,62 @@ module Rumx
           sub_params = params[attribute.name] || params[attribute.name.to_s]
           raise "Can't assign value for nil list attribute" if !obj && sub_params
           if sub_params
+            # TODO: Allow array?
             raise "Invalid param for #{attribute.name}" unless sub_params.kind_of?(Hash)
+            max_size = attribute[:max_size]
+            if max_size
+              if max_size.kind_of?(Symbol)
+                max_size = send(max_size)
+              end
+            else
+              # Default to current size of the list if unset
+              max_size = obj.size
+            end
             sub_params.each do |index, value|
-              attribute.set_index_value(obj, index.to_i, value)
-              changed = true
+              if index.to_i < max_size
+                attribute.set_index_value(obj, index.to_i, value)
+                changed = true
+              end
             end
           end
         end
       end
-      bean_embedded_children.each do |name, bean|
-        embedded_params = params[name]
-        bean.bean_set_attributes(embedded_params)
+      self.class.bean_embeds.each do |name|
+        bean = send(name)
+        if bean
+          embedded_params = params[name]
+          bean.bean_set_attributes(embedded_params)
+          changed = true
+        end
       end
-      bean_embedded_child_lists.each do |name, list|
-        list_params = params[name]
-        if list_params
-          list.each_with_index do |bean, i|
-            bean.bean_set_attributes(list_params[i] || list_params[i.to_s])
+      self.class.bean_embed_lists.each do |name|
+        list = send(name)
+        if list 
+          list_params = params[name]
+          if list_params
+            list.each_with_index do |bean, i|
+              bean.bean_set_attributes(list_params[i] || list_params[i.to_s])
+            end
+            changed = true
           end
         end
       end
       bean_attributes_changed if changed
     end
 
-    def join_rel_path(old_rel_path, name)
-      if old_rel_path
-        old_rel_path + '/' + name
+    def bean_join_rel_path(parent_rel_path, name)
+      if parent_rel_path
+        "#{parent_rel_path}/#{name}"
       else
-        name
+        name.to_s
       end
     end
 
-    def join_param_name(old_param_name, name)
-      if old_param_name
-        old_param_name + '[' + name + ']'
+    def bean_join_param_name(parent_param_name, name)
+      if parent_param_name
+        "#{parent_param_name}[#{name}]"
       else
-        name
+        name.to_s
       end
     end
   end

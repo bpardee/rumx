@@ -5,5 +5,5 @@ require 'rubygems'
 require 'rumx'
 require 'my_bean'
 
-Rumx::Bean.root.bean_add_child('MyBean', MyBean.new)
+Rumx::Bean.root.bean_add_child(:MyBean, MyBean.new)
 run Rumx::Server

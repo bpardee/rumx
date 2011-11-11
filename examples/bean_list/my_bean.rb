@@ -14,7 +14,9 @@ end
 class MyBean
   include Rumx::Bean
 
-  bean_attr_reader :greeting, :string, 'My greeting'
+  bean_attr_reader     :greeting, :string, 'My greeting'
+
+  bean_attr_embed_list :entries,           'My entries'
 
   bean_operation   :push_entry, :void, 'Push entry onto entry list', [
       [ :my_int,    :integer, 'An integer argument' ],
@@ -24,7 +26,6 @@ class MyBean
   def initialize
     @greeting = 'Hello, Rumx'
     @entries = [MyEntryBean.new(1, '#1')]
-    bean_add_embedded_child_list('Entries', @entries)
   end
 
   def push_entry(my_int, my_string)

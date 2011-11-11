@@ -5,15 +5,15 @@ class MyBean
   include Rumx::Bean
 
   bean_attr_accessor :greeting, :string,  'My greeting'
+  bean_attr_embed    :embedded,           'My embedded bean'
 
   bean_operation     :my_operation,       :string,  'My operation', [
       [ :arg_int,    :integer, 'An int argument'   ]
   ]
 
   def initialize
-    @greeting      = 'Hello, Rumx'
-    @embedded_bean = MyEmbeddedBean.new
-    bean_add_embedded_child('EmbeddedBean', @embedded_bean)
+    @greeting = 'Hello, Rumx'
+    @embedded = MyEmbeddedBean.new
   end
 
   def my_operation(arg_int)

@@ -3,10 +3,7 @@ $LOAD_PATH.unshift File.dirname(__FILE__) + '/../../lib'
 
 require 'rubygems'
 require 'rumx'
-require 'my_class'
+require 'my_bean'
 
-10.times do
-  MyClass.new
-end
-
+Rumx::Bean.root.bean_add_child(:MyBean, MyBean.new)
 run Rumx::Server
