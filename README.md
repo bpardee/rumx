@@ -79,8 +79,9 @@ amount of time that an expensive operation takes to execute.  You might do somet
       ...
     end
 
-Then you could use a tool such as munin, nagios, hyperic or <insert favorite monitoring tool here> to poll the url http://<my-host>:<my-port>/my_timer.json?reset=true
-to monitor, graph, or create an alert based on the average, max, and min times that your operation takes.  Refer to the timer example for more information.
+Then you could use a tool such as munin, nagios, hyperic, etc to poll the url http://my-host:4567/my_timer.json?reset=true
+to monitor, graph, or create an alert based on the average, max, and min times that your operation takes.
+Refer to the timer example for more information.
 
 ## Author
 
