@@ -9,4 +9,5 @@ Gem::Specification.new do |s|
   s.version     = '0.0.2'
   s.add_dependency 'sinatra'
   s.add_dependency 'haml'
+  s.add_dependency 'rack'
 end
