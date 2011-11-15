@@ -64,7 +64,7 @@ module Rumx
 
       def bean_embed(name, description)
         # We're going to ignore description (for now)
-        bean_embeds << name.to_sym
+        bean_embeds_local << name.to_sym
       end
       
       def bean_attr_embed(name, description)
@@ -74,7 +74,7 @@ module Rumx
 
       def bean_embed_list(name, description)
         # We're going to ignore description (for now)
-        bean_embed_lists << name.to_sym
+        bean_embed_lists_local << name.to_sym
       end
 
       def bean_attr_embed_list(name, description)
@@ -92,8 +92,7 @@ module Rumx
           raise 'Invalid bean_operation format' unless arg.kind_of?(Array) && arg.size == 3
           Argument.new(*arg)
         end
-        @operations ||= []
-        @operations << Operation.new(name, type, description, arguments)
+        bean_operations_local << Operation.new(name, type, description, arguments)
       end
 
       #######
@@ -101,13 +100,11 @@ module Rumx
       #######
       
       def bean_add_attribute(attribute)
-        @attributes ||= []
-        @attributes << attribute
+        bean_attributes_local << attribute
       end
 
       def bean_add_list_attribute(attribute)
-        @list_attributes ||= []
-        @list_attributes << attribute
+        bean_list_attributes_local << attribute
       end
 
       def bean_attributes
@@ -147,12 +144,29 @@ module Rumx
       end
 
       def bean_embeds
-        @embeds ||= []
+        embeds = []
+        self.ancestors.reverse_each do |mod|
+          embeds += mod.bean_embeds_local if mod.include?(Rumx::Bean)
+        end
+        return embeds
       end
 
       def bean_embed_lists
+        embed_lists = []
+        self.ancestors.reverse_each do |mod|
+          embed_lists += mod.bean_embed_lists_local if mod.include?(Rumx::Bean)
+        end
+        return embed_lists
+       end
+
+      def bean_embeds_local
+        @embeds ||= []
+      end
+
+      def bean_embed_lists_local
         @embed_lists ||= []
       end
+
     end
 
     def self.included(base)

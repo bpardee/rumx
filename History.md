@@ -1,6 +1,10 @@
 Rumx Changelog
 =====================
 
+0.0.4
+
+ - Fix bug where embedded beans and bean-lists of base classes weren't included.
+
 0.0.3
 
  - Use msec instead of sec for Timer bean.

@@ -94,6 +94,8 @@ so well.  Volunteers anyone?
 
 Need tests!  So far just doing Example Driven Development.
 
+Bridge to JMX?
+
 Build in optional authentication or just let user extend Rumx::Server?
 
 Railtie it.
