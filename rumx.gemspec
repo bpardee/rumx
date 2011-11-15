@@ -8,4 +8,5 @@ Gem::Specification.new do |s|
   s.files       = Dir["{examples,lib}/**/*"] + %w(LICENSE.txt Rakefile History.md README.md)
   s.version     = '0.0.2'
   s.add_dependency 'sinatra'
+  s.add_dependency 'haml'
 end
