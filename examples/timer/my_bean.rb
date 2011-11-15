@@ -1,7 +1,7 @@
 class MyBean
   include Rumx::Bean
 
-  bean_attr_accessor :sleep_time,      :float,   'Amount of time my measured block sleeps'
+  bean_attr_accessor :sleep_time,      :float,   'Amount of time in seconds my measured block sleeps'
   bean_attr_accessor :percent_failure, :integer, 'Percentage of time the measured block will fail'
   bean_attr_embed    :timer,                     'Timer for our sleep action'
 

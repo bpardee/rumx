@@ -5,11 +5,11 @@ module Rumx
 
       bean_attr_reader     :total_count, :integer, 'Number of times the measured block has run'
       bean_attr_reader     :error_count, :integer, 'Number of times the measured block has raised an exception'
-      bean_attr_reader     :total_time,  :float,   'Total time in msec for all the runs of the timed instruction'
-      bean_attr_reader     :max_time,    :float,   'The maximum time for all the runs of the timed instruction'
-      bean_attr_reader     :min_time,    :float,   'The minimum time for all the runs of the timed instruction'
-      bean_attr_reader     :last_time,   :float,   'The time for the last run of the timed instruction'
-      bean_reader          :avg_time,    :float,   'The average time for all runs of the timed instruction'
+      bean_attr_reader     :total_time,  :float,   'Total time (msec) for all the runs of the timed instruction'
+      bean_attr_reader     :max_time,    :float,   'The maximum time (msec) for all the runs of the timed instruction'
+      bean_attr_reader     :min_time,    :float,   'The minimum time (msec) for all the runs of the timed instruction'
+      bean_attr_reader     :last_time,   :float,   'The time (msec) for the last run of the timed instruction'
+      bean_reader          :avg_time,    :float,   'The average time (msec) for all runs of the timed instruction'
       bean_writer          :reset,       :boolean, 'Reset the times and counts to zero (Note that last_time and errors are not reset)'
       bean_attr_embed_list :errors,                'List of the last occurring errors'
 
@@ -37,7 +37,7 @@ module Rumx
         begin
           yield
         ensure
-          current_time = Time.now.to_f - start_time.to_f
+          current_time = (Time.now.to_f - start_time.to_f) * 1000.0
           bean_synchronize do
             @last_time    = current_time
             @total_count += 1
