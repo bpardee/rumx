@@ -1,3 +1,4 @@
 .idea
 rumx-*.gem
 .rvmrc
+Gemfile.lock

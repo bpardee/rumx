@@ -7,4 +7,5 @@ Gem::Specification.new do |s|
   s.homepage    = 'http://github.com/ClarityServices/rumx'
   s.files       = Dir["{examples,lib}/**/*"] + %w(LICENSE.txt Rakefile History.md README.md)
   s.version     = '0.0.1'
+  s.add_dependency 'rumx'
 end
