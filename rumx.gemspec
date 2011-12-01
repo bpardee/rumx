@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.email       = ['bradpardee@gmail.com']
   s.homepage    = 'http://github.com/ClarityServices/rumx'
   s.files       = Dir["{examples,lib}/**/*"] + %w(LICENSE.txt Rakefile History.md README.md)
-  s.version     = '0.0.4'
+  s.version     = '0.0.5'
   s.add_dependency 'sinatra'
   s.add_dependency 'haml'
   s.add_dependency 'rack'

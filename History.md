@@ -1,6 +1,11 @@
 Rumx Changelog
 =====================
 
+0.0.5
+
+ - Allow default values for operation arguments.
+ - Add json mime type.
+
 0.0.4
 
  - Fix bug where embedded beans and bean-lists of base classes weren't included.
