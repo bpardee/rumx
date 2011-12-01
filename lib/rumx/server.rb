@@ -7,6 +7,7 @@ module Rumx
   class Server < Sinatra::Base
     configure do
       enable :logging
+      mime_type :json, 'application/json'
     end
 
     set :root, File.join(File.dirname(__FILE__), 'server')
