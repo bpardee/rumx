@@ -6,7 +6,7 @@
       %td Name
       %td Description
       %td Returns
-      %td{:colspan => 4} Arguments
+      %td{:colspan => 5} Arguments
     %tr
       %td &nbsp;
       %td &nbsp;
@@ -15,6 +15,7 @@
       %td Name
       %td Description
       %td Type
+      %td Default Value
   %tbody
     - bean.bean_each_operation do |operation, rel_path|
       %tr
@@ -34,3 +35,4 @@
           %td= arg.name
           %td= arg.description
           %td= arg.type
+          %td= arg.default_value

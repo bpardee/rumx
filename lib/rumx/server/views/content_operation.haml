@@ -24,7 +24,7 @@
       %tr
         %td Value:
         %td
-          %input{ :type => 'text', :name => arg.name, :size => 30 }
+          %input{ :type => 'text', :name => arg.name, :size => 30, :value => arg.default_value.to_s }
   %input{ :type => 'submit', :value => 'Execute' }
 
 %p#results

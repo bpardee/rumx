@@ -89,7 +89,7 @@ module Rumx
       #]
       def bean_operation(name, type, description, args)
         arguments = args.map do |arg|
-          raise 'Invalid bean_operation format' unless arg.kind_of?(Array) && arg.size == 3
+          raise 'Invalid bean_operation format' unless arg.kind_of?(Array) && (arg.size == 3 || arg.size == 4)
           Argument.new(*arg)
         end
         bean_operations_local << Operation.new(name, type, description, arguments)

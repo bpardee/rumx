@@ -10,9 +10,9 @@ class MyBean
   bean_reader        :readable_my_writer, :float,   'My secret access to the write-only attribute my_writer'
 
   bean_operation     :my_operation,       :string,  'My operation', [
-      [ :arg_int,    :integer, 'An int argument'   ],
-      [ :arg_float,  :float,   'A float argument'  ],
-      [ :arg_string, :string,  'A string argument' ]
+      [ :arg_int,    :integer, 'An int argument',   42                 ],
+      [ :arg_float,  :float,   'A float argument'                      ],    # No default value
+      [ :arg_string, :string,  'A string argument', 'My default value' ]
   ]
 
   def initialize
