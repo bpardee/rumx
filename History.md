@@ -7,6 +7,7 @@ Rumx Changelog
    Timer and Error beans can be used to track time and errors individually.
    Apologies for the somewhat incompatible change if anyone is already using Rumx::Beans::Timer.  Just rename
    to Rumx::Beans::TimerAndError if you want both.
+ - Fix bug where Rack mounted apps don't have the correct url.
 
 0.0.5
 
