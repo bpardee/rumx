@@ -34,19 +34,19 @@ module Rumx
       end
 
       def attributes_path(path)
-        URI.escape(path + '/attributes')
+        url URI.escape(path + '/attributes')
       end
 
       def attribute_path(path)
-        URI.escape(path + '/attribute')
+        url URI.escape(path + '/attribute')
       end
 
       def operations_path(path)
-        URI.escape(path + '/operations')
+        url URI.escape(path + '/operations')
       end
 
       def operation_path(path)
-        URI.escape(path + '/operation')
+        url URI.escape(path + '/operation')
       end
 
       # http://sinatra-book.gittr.com/#implementation_of_rails_style_partials but extract_options! part of ActiveSupport
