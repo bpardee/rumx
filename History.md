@@ -1,6 +1,13 @@
 Rumx Changelog
 =====================
 
+0.0.6
+
+ - Separate out error tracking from Timer bean.  TimerAndError bean now includes what Timer bean used to bean.
+   Timer and Error beans can be used to track time and errors individually.
+   Apologies for the somewhat incompatible change if anyone is already using Rumx::Beans::Timer.  Just rename
+   to Rumx::Beans::TimerAndError if you want both.
+
 0.0.5
 
  - Allow default values for operation arguments.

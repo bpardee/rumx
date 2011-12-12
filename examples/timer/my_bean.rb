@@ -8,7 +8,7 @@ class MyBean
   def initialize
     @sleep_time      = 0.5
     @percent_failure = 10
-    @timer           = Rumx::Beans::Timer.new(:max_errors => 5)
+    @timer           = Rumx::Beans::TimerAndError.new(:max_errors => 5)
 
     Thread.new do
       while true

@@ -1,3 +1,5 @@
 require 'rumx/beans/folder'
 require 'rumx/beans/message'
 require 'rumx/beans/timer'
+require 'rumx/beans/error'
+require 'rumx/beans/timer_and_error'
