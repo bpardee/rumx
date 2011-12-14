@@ -1,6 +1,10 @@
 Rumx Changelog
 =====================
 
+0.0.7
+
+ - Add .properties format for brain-dead hyperic.  Might as well allow extending while we're at it.
+
 0.0.6
 
  - Separate out error tracking from Timer bean.  TimerAndError bean now includes what Timer bean used to bean.

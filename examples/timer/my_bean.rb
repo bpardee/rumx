@@ -14,10 +14,10 @@ class MyBean
       while true
         begin
           @timer.measure do
+            sleep @sleep_time
             if rand(100) < @percent_failure
               raise "Failure occurred with sleep_time=#{@sleep_time} and percent failure=#{@percent_failure}"
             end
-            sleep @sleep_time
           end
         rescue Exception => e
           # Error handling...

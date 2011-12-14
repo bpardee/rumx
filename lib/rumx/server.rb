@@ -8,6 +8,7 @@ module Rumx
     configure do
       enable :logging
       mime_type :json, 'application/json'
+      mime_type :properties, 'text/plain'
     end
 
     set :root, File.join(File.dirname(__FILE__), 'server')
@@ -92,17 +93,36 @@ module Rumx
         partial :attribute_value_tag, :locals => {:attribute => attribute, :param_name => param_name, :value => value}
       end
 
-      def name_value_hash(attribute_value_hash)
-        hash = {}
-        attribute_value_hash.each do |attribute, value|
-          if attribute.kind_of?(Rumx::Attribute)
-            hash[attribute.name] = value
-          elsif attribute.kind_of?(String)
-            # It's an embedded bean, attribute is actually the bean name and value is the hash of Attribute/values
-            hash[attribute] = name_value_hash(value)
+      # Brain-dead hyperic doesn't know about json?
+      def to_properties(val, prefix=nil)
+        str = ''
+        new_prefix = (prefix + '.') if prefix
+        new_prefix = new_prefix || ''
+        if val.kind_of?(Hash)
+          val.each do |key, value|
+            str += to_properties(value, new_prefix + key.to_s)
           end
+        elsif val.kind_of?(Array)
+          val.each_with_index do |value, i|
+            str += to_properties(value, new_prefix + i.to_s)
+          end
+        else
+          str += "#{prefix}=#{val}\n"
         end
-        hash
+        return str
+      end
+    end
+
+    def handle_attributes(attribute_hash, format)
+      case format
+        when 'json'
+          content_type :json
+          attribute_hash.to_json
+        when 'properties'
+          content_type :properties
+          to_properties(attribute_hash)
+        else
+          404
       end
     end
 
@@ -115,8 +135,8 @@ module Rumx
       bean = Bean.find(path.split('/'))
       return 404 unless bean
       # For get we read, then write.  post is the other way around.
-      if params[:format] == 'json'
-        bean.bean_get_and_set_attributes(params).to_json
+      if params[:format]
+        handle_attributes(bean.bean_get_and_set_attributes(params), params[:format])
       else
         haml_for_ajax :content_attributes, :locals => {:get_set_method => :bean_get_and_set_attributes, :params => params, :path => path, :bean => bean}
       end
@@ -128,8 +148,8 @@ module Rumx
       return 404 unless bean
       #puts "params=#{params.inspect}"
       # For post we write, then read.  get is the other way around.
-      if params[:format] == 'json'
-        bean.bean_set_and_get_attributes(params).to_json
+      if params[:format]
+        handle_attributes(bean.bean_set_and_get_attributes(params), params[:format])
       else
         haml_for_ajax :content_attributes, :locals => {:get_set_method => :bean_set_and_get_attributes, :params => params, :path => path, :bean => bean}
       end

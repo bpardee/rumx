@@ -87,6 +87,9 @@ Refer to the timer example for more information.
 
 ## TODO
 
+Figure out the "NameError - uninitialized constant Rack::File:" error that occurs frequently on startup and seems related
+to the tree not displaying correctly.  Works okay with refresh.
+
 Api doc non-existent.
 
 Really needs some html/css love.  Right now the sinatra pages are so ugly they'll make your eyes hurt but I don't do this stuff
@@ -102,7 +105,7 @@ New types :date and :datetime?
 
 Build in optional authentication or just let user extend Rumx::Server?
 
-Railtie it.
+Railtie it?
 
 ## Author
 
