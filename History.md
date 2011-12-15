@@ -1,6 +1,10 @@
 Rumx Changelog
 =====================
 
+0.0.8
+
+ - Added /attributes query which can retrieve attributes for multiple beans in one call.
+
 0.0.7
 
  - Add .properties format for brain-dead hyperic.  Might as well allow extending while we're at it.

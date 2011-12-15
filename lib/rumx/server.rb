@@ -92,38 +92,6 @@ module Rumx
       def attribute_value_tag(attribute, param_name, value)
         partial :attribute_value_tag, :locals => {:attribute => attribute, :param_name => param_name, :value => value}
       end
-
-      # Brain-dead hyperic doesn't know about json?
-      def to_properties(val, prefix=nil)
-        str = ''
-        new_prefix = (prefix + '.') if prefix
-        new_prefix = new_prefix || ''
-        if val.kind_of?(Hash)
-          val.each do |key, value|
-            str += to_properties(value, new_prefix + key.to_s)
-          end
-        elsif val.kind_of?(Array)
-          val.each_with_index do |value, i|
-            str += to_properties(value, new_prefix + i.to_s)
-          end
-        else
-          str += "#{prefix}=#{val}\n"
-        end
-        return str
-      end
-    end
-
-    def handle_attributes(attribute_hash, format)
-      case format
-        when 'json'
-          content_type :json
-          attribute_hash.to_json
-        when 'properties'
-          content_type :properties
-          to_properties(attribute_hash)
-        else
-          404
-      end
     end
 
     get '/' do
@@ -146,13 +114,32 @@ module Rumx
       path = params[:splat][0]
       bean = Bean.find(path.split('/'))
       return 404 unless bean
-      #puts "params=#{params.inspect}"
       # For post we write, then read.  get is the other way around.
       if params[:format]
         handle_attributes(bean.bean_set_and_get_attributes(params), params[:format])
       else
         haml_for_ajax :content_attributes, :locals => {:get_set_method => :bean_set_and_get_attributes, :params => params, :path => path, :bean => bean}
       end
+    end
+
+    # Allow a monitor to get the attributes from multiple beans.
+    # Use with params such as prefix_0=bean0&bean_0=MyFolder/MyBean&prefix_1=bean1&bean_1=MyOtherFolder/SomeOtherBean
+    get '/attributes.?:format?' do
+      hash = {}
+      with_indexed_params(params) do |prefix, bean, new_params|
+        return 404 unless bean
+        hash[prefix.to_sym] = bean.bean_get_and_set_attributes(new_params)
+      end
+      handle_attributes(hash, params[:format])
+    end
+
+    post '/attributes.?:format?' do
+      hash = {}
+      with_indexed_params(params) do |prefix, bean, new_params|
+        return 404 unless bean
+        hash[prefix.to_sym] = bean.bean_set_and_get_attributes(new_params)
+      end
+      handle_attributes(hash, params[:format])
     end
 
     get '/*/attribute.?:format?' do
@@ -200,6 +187,61 @@ module Rumx
       bean, operation = Bean.find_operation(path.split('/'))
       return 404 unless bean
       operation.run(bean, params).to_json
+    end
+
+    #######
+    protected
+    #######
+
+    def handle_attributes(attribute_hash, format)
+      case format
+        when 'json'
+          content_type :json
+          attribute_hash.to_json
+        when 'properties'
+          content_type :properties
+          to_properties(attribute_hash)
+        else
+          404
+      end
+    end
+
+    #######
+    private
+    #######
+
+    def to_properties(val, prefix=nil)
+      str = ''
+      new_prefix = (prefix + '.') if prefix
+      new_prefix = new_prefix || ''
+      if val.kind_of?(Hash)
+        val.each do |key, value|
+          str += to_properties(value, new_prefix + key.to_s)
+        end
+      elsif val.kind_of?(Array)
+        val.each_with_index do |value, i|
+          str += to_properties(value, new_prefix + i.to_s)
+        end
+      else
+        str += "#{prefix}=#{val}\n"
+      end
+      return str
+    end
+
+    def with_indexed_params(params)
+      i = 0
+      while (prefix = params[prefix_key = "prefix_#{i}"]) && (bean_name = params[bean_key = "bean_#{i}"])
+        new_params = {}
+        postfix = "_#{i}"
+        bean = Bean.find(bean_name.split('/'))
+        params.each do |key, value|
+          if key.end_with?(postfix) && key != prefix_key && key != bean_key
+            new_params[key[0...-(postfix.size)]] = value
+          end
+        end
+        yield prefix, bean, new_params
+        i += 1
+      end
     end
 
   end
