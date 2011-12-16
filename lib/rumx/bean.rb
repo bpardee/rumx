@@ -157,7 +157,7 @@ module Rumx
           embed_lists += mod.bean_embed_lists_local if mod.include?(Rumx::Bean)
         end
         return embed_lists
-       end
+      end
 
       def bean_embeds_local
         @embeds ||= []
@@ -357,10 +357,6 @@ module Rumx
     # Allow extenders to save changes, etc. if attribute values change
     def bean_attributes_changed
     end
-
-    #######
-    private
-    #######
 
     # Separate call in case we're already mutex locked
     def do_bean_get_attributes(rel_path, param_name, &block)

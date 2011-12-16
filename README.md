@@ -6,7 +6,9 @@ http://github.com/ClarityServices/rumx
 
 Ruby Management Extensions
 
-Allows you to easily implement management interfaces for your Ruby application.
+Allows you to easily implement management interfaces for your Ruby application by adding
+Rumx beans.  A Rumx bean is an object that allows external access to specified attributes
+and operations.  It is basically equivalent to a JMX MBean.
 
 ## Install:
 
@@ -87,8 +89,10 @@ Refer to the timer example for more information.
 
 ## TODO
 
+I'm rewriting the list logic.  List stuff will soon be deprecated.
+
 Figure out the "NameError - uninitialized constant Rack::File:" error that occurs frequently on startup and seems related
-to the tree not displaying correctly.  Works okay with refresh.
+to the tree not displaying correctly.  Works okay with refresh.  (Current workaround is to require 'rack/file in server.rb)
 
 Api doc non-existent.
 

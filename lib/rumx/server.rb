@@ -2,6 +2,8 @@ require 'sinatra/base'
 require 'json'
 require 'haml'
 require 'uri'
+# See http://groups.google.com/group/sinatrarb/browse_thread/thread/87bf7613631e48aa
+require 'rack/file'
 
 module Rumx
   class Server < Sinatra::Base
@@ -99,47 +101,23 @@ module Rumx
     end
 
     get '/*/attributes.?:format?' do
-      path = params[:splat][0]
-      bean = Bean.find(path.split('/'))
-      return 404 unless bean
       # For get we read, then write.  post is the other way around.
-      if params[:format]
-        handle_attributes(bean.bean_get_and_set_attributes(params), params[:format])
-      else
-        haml_for_ajax :content_attributes, :locals => {:get_set_method => :bean_get_and_set_attributes, :params => params, :path => path, :bean => bean}
-      end
+      do_get_or_post_splat_attributes(params, :bean_get_and_set_attributes)
     end
 
     post '/*/attributes.?:format?' do
-      path = params[:splat][0]
-      bean = Bean.find(path.split('/'))
-      return 404 unless bean
       # For post we write, then read.  get is the other way around.
-      if params[:format]
-        handle_attributes(bean.bean_set_and_get_attributes(params), params[:format])
-      else
-        haml_for_ajax :content_attributes, :locals => {:get_set_method => :bean_set_and_get_attributes, :params => params, :path => path, :bean => bean}
-      end
+      do_get_or_post_splat_attributes(params, :bean_set_and_get_attributes)
     end
 
     # Allow a monitor to get the attributes from multiple beans.
     # Use with params such as prefix_0=bean0&bean_0=MyFolder/MyBean&prefix_1=bean1&bean_1=MyOtherFolder/SomeOtherBean
     get '/attributes.?:format?' do
-      hash = {}
-      with_indexed_params(params) do |prefix, bean, new_params|
-        return 404 unless bean
-        hash[prefix.to_sym] = bean.bean_get_and_set_attributes(new_params)
-      end
-      handle_attributes(hash, params[:format])
+      do_get_or_post_attributes(params, :bean_get_and_set_attributes)
     end
 
     post '/attributes.?:format?' do
-      hash = {}
-      with_indexed_params(params) do |prefix, bean, new_params|
-        return 404 unless bean
-        hash[prefix.to_sym] = bean.bean_set_and_get_attributes(new_params)
-      end
-      handle_attributes(hash, params[:format])
+      do_get_or_post_attributes(params, :bean_set_and_get_attributes)
     end
 
     get '/*/attribute.?:format?' do
@@ -230,7 +208,8 @@ module Rumx
 
     def with_indexed_params(params)
       i = 0
-      while (prefix = params[prefix_key = "prefix_#{i}"]) && (bean_name = params[bean_key = "bean_#{i}"])
+      while bean_name = params[bean_key = "bean_#{i}"]
+        prefix = params[prefix_key = "prefix_#{i}"]
         new_params = {}
         postfix = "_#{i}"
         bean = Bean.find(bean_name.split('/'))
@@ -244,5 +223,29 @@ module Rumx
       end
     end
 
+    def do_get_or_post_splat_attributes(params, get_set_method)
+      path = params[:splat][0]
+      bean = Bean.find(path.split('/'))
+      return 404 unless bean
+      if params[:format]
+        handle_attributes(bean.send(get_set_method, params), params[:format])
+      else
+        haml_for_ajax :content_attributes, :locals => {:get_set_method => get_set_method, :params => params, :path => path, :bean => bean}
+      end
+    end
+
+    def do_get_or_post_attributes(params, get_set_method)
+      hash = {}
+      with_indexed_params(params) do |prefix, bean, new_params|
+        return 404 unless bean
+        bean_hash = bean.send(get_set_method, new_params)
+        if prefix
+          hash[prefix.to_sym] = bean_hash
+        else
+          hash = hash.merge(bean_hash)
+        end
+      end
+      handle_attributes(hash, params[:format])
+    end
   end
 end
