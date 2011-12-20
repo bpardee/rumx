@@ -1,0 +1,67 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'net/http'
+require 'optparse'
+require 'cgi'
+
+class MyOptions < Hash
+  def initialize(argv)
+    super
+
+    opts = OptionParser.new do |opts|
+      opts.banner = "Usage: #$0 [options]"
+
+      # Default values
+      self[:host]     = 'localhost'
+      self[:port]     = 4567
+      self[:username] = nil
+      self[:password] = nil
+      self[:format]   = 'properties'
+      self[:mount]    = nil
+
+      opts.on('-H', '--host [HOST]', "host to hit (defaults to #{self[:host]})") do |val|
+        self[:host] = val
+      end
+
+      opts.on('-P', '--port [PORT]', Integer, "port number to hit (defaults to #{self[:port]})") do |val|
+        self[:port] = val
+      end
+
+      opts.on('-u', '--username [USERNAME]', "username for basic authentication") do |val|
+        self[:username] = val
+      end
+
+      opts.on('-p', '--password [PASSWORD]', "password for basic authentication") do |val|
+        self[:password] = val
+      end
+
+      opts.on('-f', '--format [FORMAT]', "format of the returned data (json or properties, defaults to #{self[:format]}") do |val|
+        self[:format] = val
+      end
+
+      opts.on('-m', '--mount [PATH]', "path where the Rumx app is mounted") do |val|
+        self[:format] = val
+      end
+    end
+
+    opts.parse!(argv)
+  end
+end
+
+options = MyOptions.new(ARGV)
+
+# Args can be of the form Myfolder/Subfolder/Foo?reset=true which will expand to <mount>/attributes.<format>?query0=Myfolder/Subfolder/Foo/attributes?reset=true&query1=etc
+path = "/attributes.#{options[:format]}?"
+path = options[:mount] + path if options[:mount]
+ARGV.each_with_index do |query, index|
+  path += '&' if index > 0
+  path += "query_#{index}=#{CGI.escape(query)}"
+end
+
+req = Net::HTTP::Get.new(path)
+req.basic_auth(options[:username], options[:password]) if options[:username]
+res = Net::HTTP.start(options[:host], options[:port]) { |http| http.request(req) }
+if res.kind_of?(Net::HTTPSuccess)
+  puts res.body
+end

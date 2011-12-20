@@ -12,8 +12,8 @@ module Rumx
       bean_writer          :reset,       :boolean, 'Reset the times and counts to zero (Note that last_time is not reset)'
 
       def initialize(opts={})
-        # Force initialization of Bean#bean_mutex to avoid race condition (See bean.rb)
-        bean_mutex
+        # Force initialization of Bean#bean_monitor to avoid race condition (See bean.rb)
+        bean_monitor
         @last_time = 0.0
         self.reset = true
       end

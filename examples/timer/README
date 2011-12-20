@@ -1,7 +1,7 @@
 1) Execute 'rackup -p 4567'
 2) Browse to http://localhost:4567, expand the tree and view/update the attributes and operations
 3) Browse to http://localhost:4567/MyBean/timer/attributes.json and refresh the screen every so often.
-4) Browse to http://localhost:4567/MyBean/timer/attributes.json?reset=true and refresh the screen every so often.
+4) Browse to http://localhost:4567/MyBean/timer/attributes.properties?reset=true and refresh the screen every so often.
    Note that a tool like munin, nagios, or hyperic could poll this url to monitor the timer and graph the results
    or create alerts based on exceeding some threshold.
 

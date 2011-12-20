@@ -1,6 +1,2 @@
 %li.tree-bean-attributes
   = link_to_attributes(path)
-  %ul
-    - bean.bean_get_attributes do |attribute, value, rel_path, param_name|
-      %li
-        = link_to_attribute(path, rel_path)

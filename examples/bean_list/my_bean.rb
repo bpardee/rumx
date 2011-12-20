@@ -14,9 +14,9 @@ end
 class MyBean
   include Rumx::Bean
 
-  bean_attr_reader     :greeting, :string, 'My greeting'
-
-  bean_attr_embed_list :entries,           'My entries'
+  bean_attr_reader :greeting, :string, 'My greeting'
+  # old bean_attr_embed_list :entries,           'My entries'
+  bean_attr_reader :entries,  :list,   'My entries', :list_type => :bean
 
   bean_operation   :push_entry, :void, 'Push entry onto entry list', [
       [ :my_int,    :integer, 'An integer argument' ],

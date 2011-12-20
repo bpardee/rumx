@@ -11,15 +11,15 @@
         %td Type
         %td Value
     %tbody
-      - bean.send(get_set_method, params) do |attribute, value, rel_path, param_name|
+      - bean.send(get_set_method, params) do |attribute_info|
+        - attribute = attribute_info.attribute
         %tr
-          - #puts "path=#{path} type=#{path.class.name} rel_path=#{rel_path} class=#{rel_path.class.name}"
-          %td= link_to_attribute(path, rel_path)
+          %td= rel_path(attribute_info.ancestry)
           %td= attribute.description
           %td= attribute.allow_read
           %td= attribute.allow_write
           %td= attribute.type.to_s
-          %td= attribute_value_tag(attribute, param_name, value)
+          %td= attribute_value_tag(attribute_info)
   %input{ :type => 'submit', :value => 'Update' }
 
 :javascript

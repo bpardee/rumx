@@ -53,8 +53,8 @@ Note that all Rumx::Bean public methods are prefixed with "bean_" to help avoid 
 You create a tree of beans under Rumx::Bean.root.  For instance, you might create a tree for the bean above with the following commands:
 
     my_folder = Rumx::Beans::Folder.new
-    Rumx::Bean.root.bean_add_child(:my_folder, my_folder)
-    my_folder.bean_add_child(:my_bean, MyBean.new)
+    Rumx::Bean.root.bean_add_child(:MyFolder, my_folder)
+    my_folder.bean_add_child(:MyBean, MyBean.new)
 
 Rumx includes a Sinatra server app called Rumx::Server.  You could startup a server by creating the following config.ru and running "rackup -p 4567"
 
@@ -106,8 +106,6 @@ Bridge to JMX?
 Allow validations in attribute declarations?
 
 New types :date and :datetime?
-
-Build in optional authentication or just let user extend Rumx::Server?
 
 Railtie it?
 

@@ -2,6 +2,7 @@ require 'sinatra/base'
 require 'json'
 require 'haml'
 require 'uri'
+require 'cgi'
 # See http://groups.google.com/group/sinatrarb/browse_thread/thread/87bf7613631e48aa
 require 'rack/file'
 
@@ -28,7 +29,7 @@ module Rumx
 
       def render_tree_bean_children(parent_path, parent_bean)
         val = ''
-        parent_bean.bean_children.each do |name, bean|
+        parent_bean.bean_each_child do |name, bean|
           #puts "in child name=#{name} bean=#{bean}"
           path = "#{parent_path}/#{name}"
           val << partial(:tree_bean, :locals => {:path => path, :name =>name, :bean => bean})
@@ -79,20 +80,33 @@ module Rumx
         partial :link_to_content, :locals => {:href => attributes_path(path), :name => 'Attributes'}
       end
 
-      def link_to_attribute(parent_path, rel_path)
-        partial :link_to_content, :locals => {:href => attribute_path(parent_path+'/'+rel_path), :name => rel_path}
+      def link_to_attribute(parent_path, attribute_info)
+        path = rel_path(attribute_info.ancestry)
+        partial :link_to_content, :locals => {:href => attribute_path(parent_path+'/'+path), :name => path}
       end
 
       def link_to_operations(path)
         partial :link_to_content, :locals => {:href => operations_path(path), :name => 'Operations'}
       end
 
-      def link_to_operation(parent_path, rel_path)
-        partial :link_to_content, :locals => {:href => operation_path(parent_path+'/'+rel_path), :name => rel_path}
+      def link_to_operation(parent_path, operation)
+        partial :link_to_content, :locals => {:href => operation_path(parent_path+'/'+operation.name.to_s), :name => operation.name}
       end
 
-      def attribute_value_tag(attribute, param_name, value)
-        partial :attribute_value_tag, :locals => {:attribute => attribute, :param_name => param_name, :value => value}
+      def attribute_value_tag(attribute_info)
+        partial :attribute_value_tag, :locals => {:attribute_info => attribute_info}
+      end
+
+      def rel_path(ancestry)
+        ancestry.join('/')
+      end
+
+      def param_name(ancestry)
+        pname = ancestry[0].to_s
+        ancestry[1..-1].each do |name|
+          pname += "[#{name}]"
+        end
+        return pname
       end
     end
 
@@ -118,29 +132,6 @@ module Rumx
 
     post '/attributes.?:format?' do
       do_get_or_post_attributes(params, :bean_set_and_get_attributes)
-    end
-
-    get '/*/attribute.?:format?' do
-      path = params[:splat][0]
-      bean, attribute, param_name, value = Bean.find_attribute(path.split('/'))
-      return 404 unless bean
-      if params[:format] == 'json'
-      else
-        haml_for_ajax :content_attribute, :locals => {:path => '/' + path, :bean => bean, :attribute => attribute, :param_name => param_name, :value => value}
-      end
-    end
-
-    post '/*/attribute.?:format?' do
-      path = params[:splat][0]
-      bean, attribute, param_name, value = Bean.find_attribute(path.split('/'))
-      return 404 unless bean
-      bean.bean_set_attributes(params)
-      # Do it again to get the updated value
-      bean, attribute, param_name, value = Bean.find_attribute(path.split('/'))
-      if params[:format] == 'json'
-      else
-        haml_for_ajax :content_attribute, :locals => {:path => '/' + path, :bean => bean, :attribute => attribute, :param_name => param_name, :value => value}
-      end
     end
 
     get '/*/operations' do
@@ -206,23 +197,6 @@ module Rumx
       return str
     end
 
-    def with_indexed_params(params)
-      i = 0
-      while bean_name = params[bean_key = "bean_#{i}"]
-        prefix = params[prefix_key = "prefix_#{i}"]
-        new_params = {}
-        postfix = "_#{i}"
-        bean = Bean.find(bean_name.split('/'))
-        params.each do |key, value|
-          if key.end_with?(postfix) && key != prefix_key && key != bean_key
-            new_params[key[0...-(postfix.size)]] = value
-          end
-        end
-        yield prefix, bean, new_params
-        i += 1
-      end
-    end
-
     def do_get_or_post_splat_attributes(params, get_set_method)
       path = params[:splat][0]
       bean = Bean.find(path.split('/'))
@@ -236,8 +210,26 @@ module Rumx
 
     def do_get_or_post_attributes(params, get_set_method)
       hash = {}
-      with_indexed_params(params) do |prefix, bean, new_params|
+      index = 0
+      while query = params["query_#{index}"]
+        index += 1
+        uri = URI.parse(query)
+        prefix = nil
+        bean_path = uri.path
+        if i = bean_path.index('=')
+          prefix = bean_path[0,i]
+          bean_path = bean_path[(i+1)..-1]
+        end
+        bean = Bean.find(bean_path.split('/'))
         return 404 unless bean
+        new_params = {}
+        if uri.query
+          cgi = CGI.parse(uri.query)
+          # We shouldn't have any dual params so let's turn this into a params object we can understand
+          cgi.each do |key, value|
+            new_params[key] = value[0]
+          end
+        end
         bean_hash = bean.send(get_set_method, new_params)
         if prefix
           hash[prefix.to_sym] = bean_hash

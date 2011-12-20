@@ -3,7 +3,7 @@ module Rumx
     class TimerAndError < Timer
 
       bean_attr_reader     :error_count, :integer, 'Number of times the measured block has raised an exception'
-      bean_attr_embed_list :errors,                'List of the last occurring errors'
+      bean_attr_reader     :errors,      :list,    'List of the last occurring errors', :list_type => :bean
 
       def initialize(opts={})
         super

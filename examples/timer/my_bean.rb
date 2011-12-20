@@ -3,12 +3,13 @@ class MyBean
 
   bean_attr_accessor :sleep_time,      :float,   'Amount of time in seconds my measured block sleeps'
   bean_attr_accessor :percent_failure, :integer, 'Percentage of time the measured block will fail'
-  bean_attr_embed    :timer,                     'Timer for our sleep action'
 
   def initialize
     @sleep_time      = 0.5
     @percent_failure = 10
     @timer           = Rumx::Beans::TimerAndError.new(:max_errors => 5)
+
+    bean_add_child(:timer, @timer)
 
     Thread.new do
       while true

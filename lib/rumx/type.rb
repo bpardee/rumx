@@ -8,10 +8,15 @@ module Rumx
       type
     end
 
-    def initialize(name, string_to_value_proc, value_to_string_proc=lambda{|v| v.to_s})
-      @name = name
+    def initialize(name, attribute_class, string_to_value_proc, value_to_string_proc=lambda{|v| v.to_s})
+      @name                 = name
+      @attribute_class      = attribute_class
       @string_to_value_proc = string_to_value_proc
       @value_to_string_proc = value_to_string_proc
+    end
+
+    def create_attribute(name, description, allow_read, allow_write, options)
+      @attribute_class.new(name, self, description, allow_read, allow_write, options)
     end
 
     def string_to_value(string)
@@ -23,11 +28,14 @@ module Rumx
     end
 
     @@allowed_types = {
-        :integer => new(:integer, lambda {|s| s.to_i}),
-        :float   => new(:float,   lambda {|s| s.to_f}),
-        :string  => new(:string,  lambda {|s| s.to_s}),
-        :boolean => new(:boolean, lambda {|s| s.to_s == 'true'}),
-        :void    => new(:void,    lambda {|s| nil}, lambda {|v| ''})
+        :integer => new(:integer, Attribute,     lambda {|s| s.to_i}),
+        :float   => new(:float,   Attribute,     lambda {|s| s.to_f}),
+        :string  => new(:string,  Attribute,     lambda {|s| s.to_s}),
+        :symbol  => new(:symbol,  Attribute,     lambda {|s| s.to_sym}),
+        :boolean => new(:boolean, Attribute,     lambda {|s| s.to_s == 'true'}),
+        :list    => new(:list,    ListAttribute, nil),
+        :hash    => new(:hash,    HashAttribute, nil),
+        :void    => new(:void,    nil,           lambda {|s| nil}, lambda {|v| ''})
     }
 
     # We've created all the instances we need

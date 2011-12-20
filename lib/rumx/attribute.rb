@@ -2,37 +2,46 @@ module Rumx
   class Attribute
     attr_reader :name, :type, :description, :allow_read, :allow_write
 
-    def initialize(name, type_name, description, allow_read, allow_write, options)
+    def initialize(name, type, description, allow_read, allow_write, options)
       @name        = name.to_sym
-      @type        = Type.find(type_name)
+      @type        = type
       @description = description
-      @allow_read  = allow_read
-      @allow_write = allow_write
+      # List and hash attributes might set up the object for reading but the individual elements for writing
+      @allow_read  = options[:allow_read] || allow_read
+      @allow_write = options[:allow_write] || allow_write
       @options     = options
     end
 
     def get_value(bean)
-      return nil unless @allow_read
-      bean.send(self.name)
+      @allow_read ? bean.send(@name) : nil
     end
 
-    def set_value(bean, value)
-      raise 'Illegal set_value' unless @allow_write
-      bean.send(self.name.to_s+'=', type.string_to_value(value))
+    def each_attribute_info(bean, ancestry, &block)
+      yield AttributeInfo.new(self, bean, ancestry+[@name], get_value(bean))
     end
 
-    def get_index_value(obj, index)
-      return nil unless @allow_read
-      return obj[index]
-    end
-
-    def set_index_value(obj, index, value)
-      raise 'Illegal set_index_value' unless @allow_write
-      obj[index] = type.string_to_value(value)
+    def write?(bean, params)
+      if @allow_write
+        param_value(params) do |value|
+          bean.send(@name.to_s+'=', @type.string_to_value(value))
+          return true
+        end
+      end
+      return false
     end
 
     def [](key)
       @options[key]
+    end
+
+    protected
+
+    def param_value(params, &block)
+      if params.has_key?(@name)
+        yield params[@name]
+      elsif params.has_key?(@name.to_s)
+        yield params[@name.to_s]
+      end
     end
   end
 end

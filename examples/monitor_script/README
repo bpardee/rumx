@@ -1,0 +1,8 @@
+Startup example/simple and try the following:
+
+./rumx_attributes MyFolder/MyBean
+./rumx_attributes MyFolder/MyBean MyFolder/MyOtherBean
+./rumx_attributes bean=MyFolder/MyBean other=MyFolder/MyOtherBean
+# Query params for GETs won't show until the next time you query
+./rumx_attributes bean=MyFolder/MyBean?my_accessor=42\&my_writer=123.45 other=MyFolder/MyOtherBean
+./rumx_attributes bean=MyFolder/MyBean other=MyFolder/MyOtherBean

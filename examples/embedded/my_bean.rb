@@ -4,8 +4,9 @@ require 'my_embedded_bean'
 class MyBean
   include Rumx::Bean
 
-  bean_attr_accessor :greeting, :string,  'My greeting'
-  bean_attr_embed    :embedded,           'My embedded bean'
+  bean_attr_accessor :greeting, :string, 'My greeting'
+  #old bean_attr_embed    :embedded,           'My embedded bean'
+  bean_attr_reader   :embedded, :bean,   'My embedded bean'
 
   bean_operation     :my_operation,       :string,  'My operation', [
       [ :arg_int,    :integer, 'An int argument'   ]
