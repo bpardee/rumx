@@ -198,6 +198,7 @@ module Rumx
     end
 
     def do_get_or_post_splat_attributes(params, get_set_method)
+      #puts "params=#{params.inspect}"
       path = params[:splat][0]
       bean = Bean.find(path.split('/'))
       return 404 unless bean

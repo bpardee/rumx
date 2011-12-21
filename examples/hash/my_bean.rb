@@ -3,7 +3,7 @@ require 'rumx'
 class MyBean
   include Rumx::Bean
 
-  bean_attr_reader :messages, :hash,    'Message', :hash_type => :string#, :allow_write => true
+  bean_attr_reader :messages, :hash,    'Message', :hash_type => :string, :allow_write => true
 
   bean_operation   :put_message, :string, 'Put message onto message hash', [
       [ :key,     :symbol, 'The hash key'],

@@ -19,14 +19,18 @@ module Rumx
     end
 
     def write?(bean, params)
+      #puts "hash write params=#{params.inspect}"
       return false unless params.kind_of?(Hash)
       is_written = false
       if allow_write
         hash = bean.send(name)
-        return false unless hash
-        params.each do |name, value|
-          hash[name.to_sym] = @hash_type.string_to_value(value)
-          is_written = true
+        param_value(params) do |hash_params|
+          if hash && hash_params && hash_params.kind_of?(Hash)
+            hash_params.each do |name, value|
+              hash[name.to_sym] = @hash_type.string_to_value(value)
+              is_written = true
+            end
+          end
         end
       end
       return is_written

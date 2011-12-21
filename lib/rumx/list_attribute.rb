@@ -22,6 +22,7 @@ module Rumx
     end
 
     def write?(bean, params)
+      #puts "list write params=#{params.inspect}"
       is_written = false
       if allow_write
         list = bean.send(name)

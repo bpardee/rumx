@@ -1,4 +1,4 @@
 - if attribute_info.attribute.allow_write
-  %input{ :type => 'text', :name => param_name(attribute_info.ancestry), :size => 30, :value => escape_html(attribute_info.value) }
+  %input{ :type => 'text', :name => param_name(attribute_info.ancestry), :size => 30, :value => attribute_info.value }
 - else
   %span= escape_html(attribute_info.value)

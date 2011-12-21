@@ -1,6 +1,34 @@
 Rumx Changelog
 =====================
 
+0.1.0
+
+ - Removed the following methods and the equivalient writers and accessors to hopefully make the commands more consistent:
+
+   OLD: bean_list_reader :foo, :string, 'Description'
+   NEW: bean_reader :foo, :list, 'Description', :list_type => :string
+
+   OLD: bean_list_attr_reader :foo, :string, 'Description'
+   NEW: bean_attr_reader :foo, :list, 'Description', :list_type => :string, :allow_write => true #Use allow_write if the accessing of list elements is different from the list.
+
+   OLD: bean_embed :foo, 'Description'
+   NEW: bean_reader :foo, :bean, 'Description'
+
+   OLD: bean_attr_embed :foo, 'Description'
+   NEW: bean_attr_reader :foo, :bean, 'Description'
+
+   OLD: bean_embed_list :foo, 'Description'
+   NEW: bean_reader :foo, :list, 'Description', :list_type => :bean
+
+   OLD: bean_attr_embed_list :foo, 'Description'
+   NEW: bean_attr_reader :foo, :list, 'Description', :list_type => :bean
+
+ - Added Hash type
+
+ - A lot of restructuring of the code so it isn't quite as repetitive for the bean iteration and such.
+
+ - Added example/monitor_script for an example script that could be used with a tool like munin or hyperic.
+
 0.0.8
 
  - Added /attributes query which can retrieve attributes for multiple beans in one call.
