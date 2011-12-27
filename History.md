@@ -1,6 +1,11 @@
 Rumx Changelog
 =====================
 
+0.1.1
+
+ - Changed Bean::Timer attribute total_count to count and added non-resettable total_count as attribute.
+   For munin, this allows the total count to be collected in a separate call without worrying about it being reset.
+
 0.1.0
 
  - Removed the following methods and the equivalient writers and accessors to hopefully make the commands more consistent:
