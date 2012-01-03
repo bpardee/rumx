@@ -11,13 +11,6 @@ module Rumx
         @max_errors = (opts[:max_errors] || 1).to_i
       end
 
-      def reset=(val)
-        super
-        if val
-          @error_count = 0
-        end
-      end
-
       def measure
         super
       rescue Exception => e

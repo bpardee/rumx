@@ -1,6 +1,10 @@
 Rumx Changelog
 =====================
 
+0.1.2
+
+ - Changed Beans::TimerAndError so it doesn't reset error count.  Works better to map this as a trend upward attribute.
+
 0.1.1
 
  - Changed Bean::Timer attribute total_count to count and added non-resettable total_count as attribute.
