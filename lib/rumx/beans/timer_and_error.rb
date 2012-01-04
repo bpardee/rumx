@@ -7,6 +7,7 @@ module Rumx
 
       def initialize(opts={})
         super
+        @error_count = 0
         @errors = []
         @max_errors = (opts[:max_errors] || 1).to_i
       end

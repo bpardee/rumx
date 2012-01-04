@@ -12,6 +12,7 @@ module Rumx
 
     def each_attribute_info(bean, ancestry, &block)
       list = bean.send(name)
+      return unless list
       child_ancestry = ancestry+[name]
       index_index = child_ancestry.size
       list.each_with_index do |value, i|

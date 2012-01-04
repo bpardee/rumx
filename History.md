@@ -1,6 +1,11 @@
 Rumx Changelog
 =====================
 
+0.1.3
+
+ - Check for nil when using Hash and List attribute.
+ - Fix bug where
+
 0.1.2
 
  - Changed Beans::TimerAndError so it doesn't reset error count.  Works better to map this as a trend upward attribute.

@@ -9,6 +9,7 @@ module Rumx
 
     def each_attribute_info(bean, ancestry, &block)
       hash = bean.send(name)
+      return unless hash
       child_ancestry = ancestry+[name]
       index_index = child_ancestry.size
       hash.each do |name, value|
@@ -24,8 +25,9 @@ module Rumx
       is_written = false
       if allow_write
         hash = bean.send(name)
+        return false unless hash
         param_value(params) do |hash_params|
-          if hash && hash_params && hash_params.kind_of?(Hash)
+          if hash_params && hash_params.kind_of?(Hash)
             hash_params.each do |name, value|
               hash[name.to_sym] = @hash_type.string_to_value(value)
               is_written = true
