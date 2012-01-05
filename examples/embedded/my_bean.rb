@@ -1,5 +1,5 @@
 require 'rumx'
-require 'my_embedded_bean'
+require './my_embedded_bean'
 
 class MyBean
   include Rumx::Bean
