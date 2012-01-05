@@ -1,6 +1,11 @@
 Rumx Changelog
 =====================
 
+0.1.4
+
+ - Oops, I had broken all the examples when I changed the setup around.
+ - Added Beans::TimerAndErrorHash
+
 0.1.3
 
  - Check for nil when using Hash and List attribute.
