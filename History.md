@@ -1,6 +1,10 @@
 Rumx Changelog
 =====================
 
+0.1.5
+
+ - Require Beans::TimerAndErrorHash otherwise it won't do any good adding it.
+
 0.1.4
 
  - Oops, I had broken all the examples when I changed the setup around.
