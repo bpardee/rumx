@@ -11,7 +11,7 @@ class MyBean
     @sleep1 = 1
     @sleep2 = 2
     @sleep3 = 3
-    @timers = Rumx::Beans::TimerHash.new
+    @timers = Rumx::Beans::TimerAndErrorHash.new
     bean_add_child(:timers, @timers)
     100.times do
       Thread.new do

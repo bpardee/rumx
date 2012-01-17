@@ -89,8 +89,6 @@ Refer to the timer example for more information.
 
 ## TODO
 
-I'm rewriting the list logic.  List stuff will soon be deprecated.
-
 Figure out the "NameError - uninitialized constant Rack::File:" error that occurs frequently on startup and seems related
 to the tree not displaying correctly.  Works okay with refresh.  (Current workaround is to require 'rack/file in server.rb)
 
@@ -107,7 +105,13 @@ Allow validations in attribute declarations?
 
 New types :date and :datetime?
 
-Railtie it?
+Implement some kind of push of entire attribute tree to a central server for processing.  Push would probably require
+the class name for unmarshaling.  Include some mechanism for summation
+of data.  For instance, the timer would sum up all timer instances (possibly by just creating a '+' operator.  All beans
+would probably have a reset attribute that they could optionally implement so that after tree was pushed, a reset would
+occur for those beans that need it (Timer).  Since multiple clients might want to access a Timer and we only want one to
+actually reset it, a History buffer might be nice.  This would also be useful for alerting to provide some state when
+determining if an alert should be made.
 
 ## Author
 
@@ -115,4 +119,4 @@ Brad Pardee
 
 ## Copyright
 
-Copyright (c) 2011 Clarity Services. See LICENSE for details.
+Copyright (c) 2011-2012 Clarity Services. See LICENSE for details.
