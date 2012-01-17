@@ -238,7 +238,13 @@ module Rumx
           hash = hash.merge(bean_hash)
         end
       end
-      handle_attributes(hash, params[:format])
+      if index > 0
+        handle_attributes(hash, params[:format])
+      else
+        # If we didn't get called with any queries, assume we were meant to be a splat on the root bean
+        params[:splat] = ['']
+        do_get_or_post_splat_attributes(params, get_set_method)
+      end
     end
   end
 end
