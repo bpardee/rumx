@@ -8,6 +8,26 @@ module Rumx
       type
     end
 
+    def self.find_by_value(val)
+      if val.kind_of?(Integer)
+        @@llowed_types[:integer]
+      elsif val.kind_of?(Float)
+        @@llowed_types[:float]
+      elsif val.kind_of?(String)
+        @@llowed_types[:string]
+      elsif val.kind_of?(Symbol)
+        @@llowed_types[:symbol]
+      elsif val.kind_of?(Boolean)
+        @@llowed_types[:boolean]
+      elsif val.kind_of?(Array)
+        @@llowed_types[:list]
+      elsif val.kind_of?(Hash)
+        @@llowed_types[:hash]
+      else
+        nil
+      end
+    end
+
     def initialize(name, attribute_class, string_to_value_proc, value_to_string_proc=lambda{|v| v.to_s})
       @name                 = name
       @attribute_class      = attribute_class

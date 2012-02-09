@@ -13,6 +13,6 @@
     %title Rumx Console
   %body
     .ui-layout-west
-      = partial :tree
+      = partial :tree, :locals => {:path => path, :root => root}
     .ui-layout-center#content
       = yield

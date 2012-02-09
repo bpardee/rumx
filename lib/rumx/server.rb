@@ -111,7 +111,7 @@ module Rumx
     end
 
     get '/' do
-      haml :index
+      haml :index, :locals => {:path => '', :root => ::Rumx::Bean.root}
     end
 
     get '/*/attributes.?:format?' do
@@ -156,6 +156,12 @@ module Rumx
       bean, operation = Bean.find_operation(path.split('/'))
       return 404 unless bean
       operation.run(bean, params).to_json
+    end
+
+    get '/:root' do
+      root = Bean.root(params[:root])
+      return 404 unless root
+      haml :index, :locals => {:path => '/'+params[:root], :root => root}
     end
 
     #######

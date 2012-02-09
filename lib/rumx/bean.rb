@@ -4,6 +4,8 @@ module Rumx
   # Defines a Rumx bean that allows access to the defined attributes and operations.
   # All public instance methods are prefixed with "bean_" to try to avoid collisions.
   module Bean
+    @@root_hash = {}
+
     module ClassMethods
 
       # options
@@ -153,37 +155,28 @@ module Rumx
       base.extend(ClassMethods)
     end
 
-    def self.root
-      @root ||= Beans::Folder.new
+    def self.add_root(name, bean)
+      @@root_hash[name.to_sym] = bean
+    end
+
+    def self.remove_root(name)
+      @@root_hash.delete(name.to_sym)
+    end
+
+    def self.root(name = nil)
+      if name
+        @@root_hash[name.to_sym]
+      else
+        @root ||= Beans::Folder.new
+      end
     end
 
     def self.find(name_array)
-      root.bean_find(name_array)
-    end
-
-    # Return [bean, attribute, param_name, value] list or nil if not found
-    def self.find_attribute(name_array)
-      attribute_name = name_array.last
-      name_array = name_array[0..-2]
-      # If it's a list attribute
-      if name.match(/^\d+$/)
-        index = name.to_i
-        name = name_array.pop
-        bean = Bean.find(name_array)
-        return nil unless bean
-        name = name.to_sym
-      # else just a regular attribute
-      else
-        bean = Bean.find(name_array)
-        return nil unless bean
-        name = name.to_sym
-        bean.class.bean_attributes.each do |attribute|
-          if name == attribute.name
-            return [bean, attribute, attribute.name, attribute.get_value(bean)]
-          end
-        end
-      end
-      return nil
+      bean = root.bean_find(name_array)
+      return bean if bean
+      my_root = root(name_array[0])
+      return nil unless my_root
+      return my_root.bean_find(name_array, 1)
     end
 
     # Return [bean, operation] pair or nil if not found
