@@ -1,6 +1,10 @@
 Rumx Changelog
 =====================
 
+0.2.0
+
+ - Bridge to JMX
+
 0.1.5
 
  - Require Beans::TimerAndErrorHash otherwise it won't do any good adding it.
