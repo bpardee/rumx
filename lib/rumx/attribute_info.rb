@@ -8,5 +8,9 @@ module Rumx
       @ancestry  = ancestry
       @value     = value
     end
+
+    def value_to_s
+      @attribute.type.value_to_string(@value)
+    end
   end
 end

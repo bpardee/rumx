@@ -103,8 +103,10 @@ module Rumx
 
       def param_name(ancestry)
         pname = ancestry[0].to_s
-        ancestry[1..-1].each do |name|
-          pname += "[#{name}]"
+        if pname.size > 1
+          ancestry[1..-1].each do |name|
+            pname += "[#{name}]"
+          end
         end
         return pname
       end

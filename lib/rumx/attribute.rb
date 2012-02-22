@@ -34,8 +34,6 @@ module Rumx
       @options[key]
     end
 
-    protected
-
     def param_value(params, &block)
       if params.has_key?(@name)
         yield params[@name]

@@ -43,6 +43,10 @@ module Rumx
       @string_to_value_proc.call(string)
     end
 
+    def value_to_string(val)
+      @value_to_string_proc.call(val)
+    end
+
     def to_s
       @name.to_s
     end

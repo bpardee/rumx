@@ -8,6 +8,7 @@ class MyBean
   bean_attr_accessor :my_accessor,        :integer, 'My integer accessor'
   bean_attr_writer   :my_writer,          :float,   'My float writer'
   bean_reader        :readable_my_writer, :float,   'My secret access to the write-only attribute my_writer'
+  bean_attr_accessor :my_boolean,         :boolean, 'My boolean accessor'
 
   bean_operation     :my_operation,       :string,  'My operation', [
       [ :arg_int,    :integer, 'An int argument',   42                 ],
@@ -19,6 +20,7 @@ class MyBean
     @greeting    = 'Hello, Rumx'
     @my_accessor = 4
     @my_writer   = 10.78
+    @my_boolean  = true
   end
 
   def goodbye
