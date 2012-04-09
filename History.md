@@ -1,6 +1,10 @@
 Rumx Changelog
 =====================
 
+0.2.2
+
+ - No real change but I think I ran into this during gem creation: http://jira.codehaus.org/browse/JRUBY-6208
+
 0.2.1
 
  - Allow more explicit control of Error bean.
