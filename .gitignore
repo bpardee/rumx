@@ -1,4 +1,4 @@
 .idea
-rumx-*.gem
+pkg
 .rvmrc
 Gemfile.lock

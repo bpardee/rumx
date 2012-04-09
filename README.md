@@ -113,6 +113,9 @@ occur for those beans that need it (Timer).  Since multiple clients might want t
 actually reset it, a History buffer might be nice.  This would also be useful for alerting to provide some state when
 determining if an alert should be made.
 
+Need to return NaN's for things like max_time in the Timer bean.  Using 0 is just wrong and makes the ruminate graphs
+all spiky.
+
 ## Author
 
 Brad Pardee

@@ -5,6 +5,8 @@ module Rumx
 
       bean_attr_reader     :error_count, :integer, 'Number of times the measured block has raised an exception'
       bean_attr_reader     :errors,      :list,    'List of the last occurring errors', :list_type => :bean
+      bean_attr_accessor   :max_errors,  :integer, 'The max number of error descriptions to keep'
+      bean_attr_writer     :reset,       :boolean, 'Reset the error count'
 
       def initialize(opts={})
         @errors = []
@@ -17,15 +19,26 @@ module Rumx
         end
       end
 
+      def max_errors=(max_errors)
+        bean_synchronize do
+          @max_errors = max_errors
+          @errors.shift while @errors.size > @max_errors
+        end
+      end
+
       def perform(prefix='')
         yield
       rescue Exception => e
+        add_exception(e)
+        raise
+      end
+
+      def add_exception(exception)
         bean_synchronize do
           @error_count += 1
-          @errors << Message.new(e.message)
+          @errors << Message.new(exception.message)
           @errors.shift while @errors.size > @max_errors
         end
-        raise
       end
 
       def to_s

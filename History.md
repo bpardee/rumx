@@ -1,6 +1,10 @@
 Rumx Changelog
 =====================
 
+0.2.1
+
+ - Allow more explicit control of Error bean.
+
 0.2.0
 
  - Bridge to JMX
