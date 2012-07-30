@@ -1,4 +1,6 @@
 .idea
+.bundle
+bin
 pkg
-.rvmrc
+vendor
 Gemfile.lock
