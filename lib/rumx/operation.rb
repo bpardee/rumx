@@ -22,5 +22,19 @@ module Rumx
       end
       bean.send(self.name, *args)
     end
+
+    def self.from_hash(hash)
+      arguments = hash['arguments'].map {|arg_hash| Argument.from_hash(arg_hash)}
+      new(hash['name'], hash['type'], hash['description'], arguments)
+    end
+
+    def to_hash
+      {
+          'name'        => @name,
+          'type'        => @type.to_s,
+          'description' => @description,
+          'arguments'   => @arguments.map(&:to_hash)
+      }
+    end
   end
 end

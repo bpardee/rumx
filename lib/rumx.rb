@@ -10,6 +10,6 @@ require 'rumx/hash_bean'
 require 'rumx/type'
 require 'rumx/server'
 require 'rumx/beans'
-if RUBY_PLATFORM =~ /java/
-  require 'rumx/jmx_bean'
-end
+require 'rumx/jmx_bean' if RUBY_PLATFORM =~ /java/
+require 'rumx/remote_bean'
+require 'rumx/remote_attribute'

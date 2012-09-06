@@ -51,14 +51,19 @@ module Rumx
       @name.to_s
     end
 
+    def self.json_string_to_value(obj)
+      obj = JSON.parse(obj) if obj.kind_of?(String)
+      return obj
+    end
+    
     @@allowed_types = {
         :integer => new(:integer, Attribute,     lambda {|s| s.to_i}),
         :float   => new(:float,   Attribute,     lambda {|s| s.to_f}),
         :string  => new(:string,  Attribute,     lambda {|s| s.to_s}),
         :symbol  => new(:symbol,  Attribute,     lambda {|s| s.to_sym}),
         :boolean => new(:boolean, Attribute,     lambda {|s| s.to_s == 'true'}),
-        :list    => new(:list,    ListAttribute, nil),
-        :hash    => new(:hash,    HashAttribute, nil),
+        :list    => new(:list,    ListAttribute, method(:json_string_to_value), lambda {|s| s.to_json}),
+        :hash    => new(:hash,    HashAttribute, method(:json_string_to_value), lambda {|s| s.to_json}),
         :void    => new(:void,    nil,           lambda {|s| nil}, lambda {|v| ''})
     }
 

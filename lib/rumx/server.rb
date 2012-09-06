@@ -8,6 +8,29 @@ require 'rack/file'
 
 module Rumx
   class Server < Sinatra::Base
+
+    # RemoteBean helpers
+    # TODO: Should I include the mount path or let the implementors determine that?  We don't really know the mount
+    # path of the remote server but could assume it matches ours.
+    def self.attributes_path(ancestry, format=nil)
+      ancestry_path(ancestry, 'attributes', format)
+    end
+
+    def self.operation_path(ancestry, operation_name, format=nil)
+      ancestry_path(ancestry, "#{operation_name}/operation", format)
+    end
+
+    def self.serialize_path(ancestry, format=nil)
+      ancestry_path(ancestry, 'serialize', format)
+    end
+
+    def self.ancestry_path(ancestry, append_path, format)
+      format = '.' + format if format
+      ancestry_path = ancestry.join('/')
+      prefix = ancestry_path.empty? ? '' : '/'
+      "#{prefix}#{ancestry_path}/#{append_path}#{format}"
+    end
+
     configure do
       enable :logging
       mime_type :json, 'application/json'
@@ -155,9 +178,24 @@ module Rumx
 
     post '/*/operation.?:format?' do
       path = params[:splat][0]
-      bean, operation = Bean.find_operation(path.split('/'))
+      bean, operation, value = Bean.run_operation(path.split('/'), params)
       return 404 unless bean
-      operation.run(bean, params).to_json
+      operation.type.value_to_string(value)
+    end
+
+    get '/*/serialize.?:format?' do
+      path = params[:splat][0]
+      puts "path=#{path.split('/').inspect}"
+      bean = Bean.find(path.split('/'))
+      return 404 unless bean
+      if params[:format] == 'json'
+        bean.to_remote_hash.to_json
+      else
+      end
+    end
+
+    get '/serialize.?:format?' do
+      Bean.root.to_remote_hash.to_json
     end
 
     get '/:root' do

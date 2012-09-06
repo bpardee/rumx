@@ -148,7 +148,6 @@ module Rumx
       def bean_embeds_local
         @embeds ||= {}
       end
-
     end
 
     def self.included(base)
@@ -185,10 +184,17 @@ module Rumx
       bean = Bean.find(name_array)
       return nil unless bean
       name = name.to_sym
-      bean.class.bean_operations.each do |operation|
+      bean.bean_operations.each do |operation|
         return [bean, operation] if name == operation.name
       end
       return nil
+    end
+
+    def self.run_operation(name_array, argument_hash)
+      bean, operation = Bean.find_operation(name_array)
+      return nil unless bean
+      value = bean.run_operation(operation, argument_hash)
+      return [bean, operation, value]
     end
 
     # Monitor for synchronization of attributes/operations
@@ -279,8 +285,20 @@ module Rumx
       return bean
     end
 
+    # Return all the attributes associated with this bean.  This would typically be defined by the class
+    # but can be overridden for cases such as RemoteBean.
+    def bean_attributes
+      self.class.bean_attributes
+    end
+
+    # Return all the operations associated with this bean.  This would typically be defined by the class
+    # but can be overridden for cases such as RemoteBean.
+    def bean_operations
+      self.class.bean_operations
+    end
+
     def bean_has_attributes?
-      return true unless self.class.bean_attributes.empty?
+      return true unless self.bean_attributes.empty?
       bean_each_embedded_child do |name, bean|
         return true if bean.bean_has_attributes?
       end
@@ -315,23 +333,24 @@ module Rumx
     end
 
     def bean_has_operations?
-      !self.class.bean_operations.empty?
+      !self.bean_operations.empty?
     end
 
-    def bean_each_operation(&block)
-      self.class.bean_operations.each do |operation|
-        yield operation
-      end
+    def run_operation(operation, argument_hash)
+      operation.run(self, argument_hash)
     end
 
-    def bean_each_operation_recursive(&block)
-      bean_each do |bean, ancestry|
-        operation_ancestry = ancestry.dup
-        index = operation_ancestry.size
-        bean.class.bean_operations.each do |operation|
-          operation_ancestry[index] = operation.name
-          yield operation, operation_ancestry
+    def to_remote_hash
+      bean_synchronize do
+        bean_hash = {}
+        bean_each_child do |name, bean|
+          bean_hash[name] = bean.to_remote_hash
         end
+        {
+            'beans'      => bean_hash,
+            'attributes' => bean_attributes.map {|attribute| attribute.to_remote_hash(self)},
+            'operations' => bean_operations.map(&:to_hash)
+        }
       end
     end
 
@@ -346,7 +365,7 @@ module Rumx
     # Separate call in case we're already monitor locked
     def do_bean_get_attributes(ancestry, &block)
       return do_bean_get_attributes_json unless block_given?
-      self.class.bean_attributes.each do |attribute|
+      self.bean_attributes.each do |attribute|
         attribute.each_attribute_info(self, ancestry) {|attribute_info| yield attribute_info}
       end
       child_ancestry = ancestry.dup
@@ -360,7 +379,7 @@ module Rumx
 
     def do_bean_get_attributes_json
       hash = {}
-      self.class.bean_attributes.each do |attribute|
+      self.bean_attributes.each do |attribute|
         hash[attribute.name] = attribute.get_value(self)
       end
       bean_each_child do |name, bean|
@@ -373,7 +392,7 @@ module Rumx
     def do_bean_set_attributes(params)
       return if !params || params.empty?
       changed = false
-      self.class.bean_attributes.each do |attribute|
+      self.bean_attributes.each do |attribute|
         changed = true if attribute.write?(self, params)
       end
       bean_each_child do |name, bean|

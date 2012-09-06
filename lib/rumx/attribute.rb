@@ -41,5 +41,18 @@ module Rumx
         yield params[@name.to_s]
       end
     end
+
+    # Partner to RemoteAttribute#from_hash(hash)
+    def to_remote_hash(bean)
+      {
+          'name'        => @name,
+          'type'        => @type.to_s,
+          'description' => @description,
+          'allow_read'  => @allow_read,
+          'allow_write' => @allow_write,
+          'options'     => @options,
+          'value'       => get_value(bean)
+      }
+    end
   end
 end

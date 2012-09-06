@@ -1,0 +1,4 @@
+1) Startup several of the other examples on different ports
+2) Startup this server with the environment variable RUMX_SERVERS pointing to the other servers.
+   For example: RUMX_SERVERS="localhost:4568 localhost:4569 localhost:4570" rackup -p 4567
+3) Browse to http://localhost:4567/remote, expand the tree and view/update the attributes and operations

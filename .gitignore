@@ -4,3 +4,4 @@ bin
 pkg
 vendor
 Gemfile.lock
+.rbenv*

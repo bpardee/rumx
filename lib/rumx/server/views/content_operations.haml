@@ -17,7 +17,7 @@
       %td Type
       %td Default Value
   %tbody
-    - bean.bean_each_operation do |operation|
+    - bean.bean_operations.each do |operation|
       %tr
         %td= link_to_operation(path, operation)
         %td= operation.description

@@ -8,5 +8,20 @@ module Rumx
       @description   = description
       @default_value = default_value
     end
+
+    def to_hash
+      {
+          'name'          => @name,
+          'type'          => @type.to_s,
+          'description'   => @description,
+          'default_value' => @default_value
+      }
+    end
+
+    def self.from_hash(hash)
+      type = Type.find(hash['type'])
+      default_value = type.string_to_value(hash['default_value'])
+      new(hash['name'], hash['type'], hash['description'], default_value)
+    end
   end
 end

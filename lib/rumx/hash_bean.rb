@@ -35,11 +35,11 @@ module Rumx
     end
 
     def do_bean_get_attributes_json
-      json_hash = {}
+      hash = {}
       @hash.each do |name, bean|
-        json_hash[name] = bean.bean_get_attributes
+        hash[name] = bean.bean_get_attributes
       end
-      return json_hash
+      return hash
     end
 
     def do_bean_set_attributes(params)
