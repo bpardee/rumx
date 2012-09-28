@@ -179,21 +179,18 @@ module Rumx
     end
 
     # Return [bean, operation] pair or nil if not found
-    def self.find_operation(name_array)
-      name = name_array.pop
+    def self.find_operation(name_array, operation_name)
       bean = Bean.find(name_array)
       return nil unless bean
-      name = name.to_sym
-      bean.bean_operations.each do |operation|
-        return [bean, operation] if name == operation.name
-      end
-      return nil
+      operation = bean.bean_find_operation(operation_name)
+      return nil unless operation
+      return [bean, operation]
     end
 
-    def self.run_operation(name_array, argument_hash)
-      bean, operation = Bean.find_operation(name_array)
+    def self.run_operation(name_array, operation_name, argument_hash)
+      bean, operation = Bean.find_operation(name_array, operation_name)
       return nil unless bean
-      value = bean.run_operation(operation, argument_hash)
+      value = bean.bean_run_operation(operation, argument_hash)
       return [bean, operation, value]
     end
 
@@ -285,6 +282,14 @@ module Rumx
       return bean
     end
 
+    def bean_find_operation(name)
+      name = name.to_sym
+      self.bean_operations.each do |operation|
+        return operation if name == operation.name
+      end
+      return nil
+    end
+
     # Return all the attributes associated with this bean.  This would typically be defined by the class
     # but can be overridden for cases such as RemoteBean.
     def bean_attributes
@@ -336,15 +341,15 @@ module Rumx
       !self.bean_operations.empty?
     end
 
-    def run_operation(operation, argument_hash)
+    def bean_run_operation(operation, argument_hash)
       operation.run(self, argument_hash)
     end
 
-    def to_remote_hash
+    def bean_to_remote_hash
       bean_synchronize do
         bean_hash = {}
         bean_each_child do |name, bean|
-          bean_hash[name] = bean.to_remote_hash
+          bean_hash[name] = bean.bean_to_remote_hash
         end
         {
             'beans'      => bean_hash,

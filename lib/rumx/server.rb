@@ -168,7 +168,9 @@ module Rumx
 
     get '/*/operation.?:format?' do
       path = params[:splat][0]
-      bean, operation = Bean.find_operation(path.split('/'))
+      name_array = path.split('/')
+      operation_name = name_array.pop
+      bean, operation = Bean.find_operation(name_array, operation_name)
       return 404 unless bean
       if params[:format] == 'json'
       else
@@ -178,7 +180,9 @@ module Rumx
 
     post '/*/operation.?:format?' do
       path = params[:splat][0]
-      bean, operation, value = Bean.run_operation(path.split('/'), params)
+      name_array = path.split('/')
+      operation_name = name_array.pop
+      bean, operation, value = Bean.run_operation(name_array, operation_name, params)
       return 404 unless bean
       operation.type.value_to_string(value)
     end
@@ -189,13 +193,13 @@ module Rumx
       bean = Bean.find(path.split('/'))
       return 404 unless bean
       if params[:format] == 'json'
-        bean.to_remote_hash.to_json
+        bean.bean_to_remote_hash.to_json
       else
       end
     end
 
     get '/serialize.?:format?' do
-      Bean.root.to_remote_hash.to_json
+      Bean.root.bean_to_remote_hash.to_json
     end
 
     get '/:root' do

@@ -17,12 +17,12 @@ class RemoteClient
     @root_bean.bean_add_child(@bean_name, Rumx::Beans::Message.new(e.message))
   end
 
-  def run_operation(ancestry, operation, argument_hash)
+  def run_operation(ancestry, operation, argument_hash, ignored_client_info)
     operation_path = Rumx::Server.operation_path(ancestry, operation.name, 'json')
     return operation.type.string_to_value(remote_call(operation_path, argument_hash))
   end
 
-  def set_attributes(ancestry, params)
+  def set_attributes(ancestry, params, ignored_client_info)
     attributes_path = Rumx::Server.attributes_path(ancestry, 'json')
     return JSON.parse(remote_call(attributes_path, params))
   end
