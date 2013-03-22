@@ -82,16 +82,17 @@ module Rumx
       end
 
       #bean_operation     :my_operation,       :string,  'My operation', [
-      #    [ :arg_int,    :int,    'An int argument'   ],
-      #    [ :arg_float,  :float,  'A float argument'  ],
-      #    [ :arg_string, :string, 'A string argument' ]
+      #    [ :arg_int,    :integer, 'An int argument'   ],
+      #    [ :arg_float,  :float,   'A float argument'  ],
+      #    [ :arg_string, :string,  'A string argument' ]
       #]
       def bean_operation(name, type, description, args)
+        name = name.to_sym
         arguments = args.map do |arg|
           raise 'Invalid bean_operation format' unless arg.kind_of?(Array) && (arg.size == 3 || arg.size == 4)
           Argument.new(*arg)
         end
-        bean_operations_local << Operation.new(name, type, description, arguments)
+        bean_operations_local[name] = Operation.new(name, type, description, arguments)
       end
 
       #######
@@ -100,40 +101,41 @@ module Rumx
       
       def bean_add_attribute(name, type_name, description, allow_read, allow_write, options)
         # Dummy up the things that are defined like attributes but are really beans
+        name = name.to_sym
         if type_name == :bean
-          bean_embeds_local[name.to_sym] = nil
+          bean_embeds_local[name] = nil
         elsif type_name == :list && options[:list_type] == :bean
-          bean_embeds_local[name.to_sym] = ListBean
+          bean_embeds_local[name] = ListBean
         elsif type_name == :hash && options[:hash_type] == :bean
-          bean_embeds_local[name.to_sym] = HashBean
+          bean_embeds_local[name] = HashBean
         else
           type = Type.find(type_name)
-          bean_attributes_local << type.create_attribute(name, description, allow_read, allow_write, options)
+          bean_attributes_local[name] = type.create_attribute(name, description, allow_read, allow_write, options)
         end
       end
 
       def bean_attributes
         attributes = []
         self.ancestors.reverse_each do |mod|
-          attributes += mod.bean_attributes_local if mod.include?(Rumx::Bean)
+          attributes += mod.bean_attributes_local.values if mod.include?(Rumx::Bean)
         end
         return attributes
       end
 
       def bean_attributes_local
-        @attributes ||= []
+        @attributes ||= {}
       end
 
       def bean_operations
         operations = []
         self.ancestors.reverse_each do |mod|
-          operations += mod.bean_operations_local if mod.include?(Rumx::Bean)
+          operations += mod.bean_operations_local.values if mod.include?(Rumx::Bean)
         end
         return operations
       end
 
       def bean_operations_local
-        @operations ||= []
+        @operations ||= {}
       end
 
       def bean_embeds
@@ -164,13 +166,16 @@ module Rumx
 
     def self.root(name = nil)
       if name
-        @@root_hash[name.to_sym]
+        root = @@root_hash[name.to_sym]
       else
-        @root ||= Beans::Folder.new
+        root = @root ||= Beans::Folder.new
       end
+      root.bean_root_hook if root
+      return root
     end
 
     def self.find(name_array)
+      name_array = name_array.split('/') if name_array.kind_of?(String)
       bean = root.bean_find(name_array)
       return bean if bean
       my_root = root(name_array[0])
@@ -221,6 +226,13 @@ module Rumx
     def bean_remove_child(name)
       bean_synchronize do
         bean_children.delete(name.to_sym)
+      end
+    end
+
+    # Allow remote roots to update all their children
+    def bean_reset_children(new_bean_children)
+      bean_synchronize do
+        @bean_children = new_bean_children
       end
     end
 
@@ -310,9 +322,9 @@ module Rumx
       return false
     end
 
-    def bean_get_attributes(ancestry=[], &block)
+    def bean_get_attributes(ancestry=[], write_only=false, &block)
       bean_synchronize do
-        do_bean_get_attributes(ancestry, &block)
+        do_bean_get_attributes(ancestry, write_only, &block)
       end
     end
 
@@ -322,18 +334,18 @@ module Rumx
       end
     end
 
-    def bean_get_and_set_attributes(params, ancestry=[], &block)
+    def bean_get_and_set_attributes(params, ancestry=[], write_only=false, &block)
       bean_synchronize do
-        val = do_bean_get_attributes(ancestry, &block)
+        val = do_bean_get_attributes(ancestry, write_only, &block)
         do_bean_set_attributes(params)
         val
       end
     end
 
-    def bean_set_and_get_attributes(params, ancestry=[], &block)
+    def bean_set_and_get_attributes(params, ancestry=[], write_only=false, &block)
       bean_synchronize do
         do_bean_set_attributes(params)
-        do_bean_get_attributes(ancestry, &block)
+        do_bean_get_attributes(ancestry, write_only=false, &block)
       end
     end
 
@@ -345,18 +357,32 @@ module Rumx
       operation.run(self, argument_hash)
     end
 
-    def bean_to_remote_hash
+    def bean_to_remote_hash(recursive=true, operations=true, read_only=false, write_only=false)
+      # Allow splitting of read/write attributes so that clients that updates read_only status info
+      # won't get called back with their own updates
+      hash = {}
       bean_synchronize do
-        bean_hash = {}
-        bean_each_child do |name, bean|
-          bean_hash[name] = bean.bean_to_remote_hash
+        if recursive
+          bean_hash = {}
+          bean_each_child do |name, bean|
+            bean_hash[name] = bean.bean_to_remote_hash(true, read_only, write_only)
+          end
+          hash['beans'] = bean_hash
         end
-        {
-            'beans'      => bean_hash,
-            'attributes' => bean_attributes.map {|attribute| attribute.to_remote_hash(self)},
-            'operations' => bean_operations.map(&:to_hash)
-        }
+        attributes = []
+        bean_attributes.each do |attribute|
+          if (!read_only || attribute.allow_read) && (!write_only || attribute.allow_write)
+            attributes << attribute.to_remote_hash(self)
+          end
+        end
+        hash['attributes'] = attributes
+        hash['operations'] = bean_operations.map(&:to_hash) if operations
+        return hash
       end
+    end
+
+    # Hook to allow root beans to load up their children when accessed
+    def bean_root_hook
     end
 
     #########
@@ -368,27 +394,29 @@ module Rumx
     end
 
     # Separate call in case we're already monitor locked
-    def do_bean_get_attributes(ancestry, &block)
-      return do_bean_get_attributes_json unless block_given?
+    def do_bean_get_attributes(ancestry, write_only=false, &block)
+      return do_bean_get_attributes_json(write_only) unless block_given?
       self.bean_attributes.each do |attribute|
-        attribute.each_attribute_info(self, ancestry) {|attribute_info| yield attribute_info}
+        if !write_only || attribute.allow_write
+          attribute.each_attribute_info(self, ancestry) { |attribute_info| yield attribute_info }
+        end
       end
       child_ancestry = ancestry.dup
       # Save some object creation
       child_index = child_ancestry.size
       bean_each_child do |name, bean|
         child_ancestry[child_index] = name
-        bean.bean_get_attributes(child_ancestry, &block)
+        bean.bean_get_attributes(child_ancestry, write_only, &block)
       end
     end
 
-    def do_bean_get_attributes_json
+    def do_bean_get_attributes_json(write_only=false)
       hash = {}
       self.bean_attributes.each do |attribute|
-        hash[attribute.name] = attribute.get_value(self)
+        hash[attribute.name] = attribute.get_value(self) if !write_only || attribute.allow_write
       end
       bean_each_child do |name, bean|
-        hash[name] = bean.bean_get_attributes
+        hash[name] = bean.bean_get_attributes(write_only)
       end
       return hash
     end

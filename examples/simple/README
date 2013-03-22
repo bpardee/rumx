@@ -1,2 +1,6 @@
-1) Execute 'rackup -p 4567'
-2) Browse to http://localhost:4567, expand the tree and view/update the attributes and operations
+# Note: run_example is just a frontend for rackup with the following config.ru
+  require './run'
+  run Rumx::Server
+
+1) Execute 'bundle exec ../run_example'
+2) Browse to http://localhost:9292, expand the tree and view/update the attributes and operations

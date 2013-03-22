@@ -89,10 +89,16 @@ Refer to the timer example for more information.
 
 ## TODO
 
+Remove haml and sinatra dependency?
+
+Class attribute accessors, currently have to create dummy wrapper beans for class rumx behavior.
+
 Figure out the "NameError - uninitialized constant Rack::File:" error that occurs frequently on startup and seems related
 to the tree not displaying correctly.  Works okay with refresh.  (Current workaround is to require 'rack/file in server.rb)
 
 Api doc non-existent.
+
+Should I be using multi_json instead of json?
 
 Really needs some html/css love.  Right now the sinatra pages are so ugly they'll make your eyes hurt but I don't do this stuff
 so well.  Volunteers anyone?

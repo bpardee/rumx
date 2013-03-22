@@ -8,13 +8,13 @@ class RemoteClient
   end
 
   def load_from_server
-    @bean_name = "#{@host.gsub('.', '_')}_#{@port}"
     serialize_path = Rumx::Server.serialize_path([], 'json')
     hash = JSON.parse(remote_call(serialize_path))
-    @root_bean.bean_add_child(@bean_name, Rumx::RemoteBean.new(hash, self))
+    puts "hash=#{hash.inspect}"
+    return Rumx::RemoteBean.new(hash, self)
   rescue Exception => e
     puts "#{e.message}\n\t#{e.backtrace.join("\n\t")}"
-    @root_bean.bean_add_child(@bean_name, Rumx::Beans::Message.new(e.message))
+    return Rumx::Beans::Message.new(e.message)
   end
 
   def run_operation(ancestry, operation, argument_hash, ignored_client_info)
@@ -31,7 +31,7 @@ class RemoteClient
   private
   #######
 
-  # Make a remote call yielding a pair of json, error_message where only 1 has a value.  If post_params is non-nil,
+  # Make a remote call yielding a json response.  If post_params is non-nil,
   # the request will be a POST otherwise it will be a GET.
   def remote_call(path, post_params=nil, &block)
     if post_params

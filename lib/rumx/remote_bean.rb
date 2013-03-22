@@ -24,8 +24,8 @@ module Rumx
           child_bean = RemoteBean.new(child_hash, remote_strategy, client_info, ancestry + [name])
           bean_add_child(name, child_bean)
         end
-        @bean_attributes = hash['attributes'].map {|hash| RemoteAttribute.from_hash(hash)}
-        @bean_operations = hash['operations'].map {|hash| Operation.from_hash(hash)}
+        @bean_attributes = (hash['attributes'] || []).map {|hash| RemoteAttribute.from_hash(hash)}
+        @bean_operations = (hash['operations'] || []).map {|hash| Operation.from_hash(hash)}
         #puts "ancestry=#{ancestry.inspect} operations=#{@bean_operations.inspect}"
       end
     end

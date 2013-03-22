@@ -1,0 +1,2 @@
+#!/bin/sh
+echo "require './run'; run ::Rumx::Server" | rackup $*

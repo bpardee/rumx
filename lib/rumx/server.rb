@@ -199,6 +199,7 @@ module Rumx
     end
 
     get '/serialize.?:format?' do
+      puts "json=#{Bean.root.bean_to_remote_hash.to_json}"
       Bean.root.bean_to_remote_hash.to_json
     end
 
